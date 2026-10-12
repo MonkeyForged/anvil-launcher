@@ -1,0 +1,273 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Anvil.App.ViewModels"
+             xmlns:views="using:Anvil.App.Views"
+             xmlns:mf="using:MonkeyForged.Design.Avalonia"
+             x:Class="Anvil.App.Views.LibraryView"
+             x:DataType="vm:LibraryViewModel">
+  <Grid ColumnDefinitions="*,352">
+
+    <DockPanel Grid.Column="0" LastChildFill="True">
+
+      <!--
+        Header (element description §3): the package's AppHeader with the label line
+        "STEAM // <n> GAMES" over the title, Rescan as the small secondary button; below it the
+        search field and the filter as the package's tabs. It sits outside the panel that
+        switches between grid and empty state — this way the action that fills the area stays
+        reachable in every empty state.
+      -->
+      <StackPanel DockPanel.Dock="Top" Classes="library-head">
+        <mf:AppHeader Label="{Binding CountLine, StringFormat='Steam // {0}'}"
+                      Heading="{Binding Title}">
+          <mf:AppHeader.Actions>
+            <Button Classes="small rescan" Command="{Binding RescanCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Data="{StaticResource IconRescan}" Classes="rescan-icon"
+                      Stroke="{Binding $self.(TextElement.Foreground)}" />
+                <!-- Capitals as the package's button sets them; it only converts text content. -->
+                <TextBlock Text="RESCAN" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </mf:AppHeader.Actions>
+        </mf:AppHeader>
+        <!--
+          The search field takes up to 320 and gives way first when the column is narrow; the
+          tabs follow it, the last column takes the rest. The weight of 100 hands the field all
+          the space up to its 320 before the rest gets any (sheet: flex 1 1 auto, max 320). The
+          package's text box has no slot for an inner icon, so the magnifier lies over the
+          field's left padding.
+        -->
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100*" MaxWidth="320" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Panel Grid.Column="0">
+            <TextBox Classes="library-search" Text="{Binding SearchText}"
+                     PlaceholderText="Search games …" />
+            <Path Data="{StaticResource IconSearch}" Classes="search-icon" />
+          </Panel>
+          <TabStrip Grid.Column="2"
+                    ItemsSource="{x:Static vm:LibraryViewModel.Filters}"
+                    SelectedItem="{Binding SelectedFilter}" />
+        </Grid>
+      </StackPanel>
+
+      <!--
+        Empty state and grid are mutually exclusive: EmptyState is null as soon as cards exist
+        (element description §10 — one template, one place).
+      -->
+      <Panel>
+        <ContentControl Content="{Binding EmptyState}"
+                        IsVisible="{Binding EmptyState, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+        <!--
+          Two things here are deliberate and must not be "cleaned up". Both are measured
+          headless across 1001 window widths (1000 to 2000 px).
+
+          1. THE MARGIN HANGS ON THE CONTENT, NOT ON THE ScrollViewer.
+             Avalonia does not subtract a ScrollViewer's padding while *measuring*, but does
+             while *arranging*. The grid was thereby measured at 1200 px and arranged at
+             1147 px — it planned for four columns (height fits, no bar needed) and drew three
+             (much taller). Because CardGrid re-measures while arranging, the cards' desired
+             size changed as a result, which triggered a new measure pass: a layout cycle that
+             Avalonia aborts after ten rounds ("Layout cycle detected"). What remained was a
+             half-finished layout — bar gone, cards cut off at the bottom, no scrolling
+             (reported by the owner on 2026-09-05). As a margin on the content, measuring and
+             arranging see the same width: 1001 of 1001 widths with a cycle become 0, and the
+             layout settles after one pass instead of 22.
+
+          2. THE BAR TAKES NO SPACE (AllowAutoHide), AND 10 px ARE FREE ON THE RIGHT.
+             If it took space, the grid would lose its width when the bar appeared, tip over to
+             one column fewer, grow taller and need the bar even more — measured, 16 widths with
+             a cycle remain from that. The 34 on the right (the 24 of the page plus the 10 the
+             design budgets for the bar, element description §11) are not part of the fix but
+             give the floating bar its own strip, so it does not cover the favorite star of the
+             right card column.
+        -->
+        <ScrollViewer Padding="0" AllowAutoHide="True"
+                      IsVisible="{Binding EmptyState, Converter={x:Static ObjectConverters.IsNull}}">
+          <ItemsControl ItemsSource="{Binding Cards}" Margin="24,8,34,24">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <!--
+                  The cards stretch to the full width and wrap at 300 px, instead of leaving a
+                  margin standing at a fixed width (Spec §8.4, rework from 2026-09-04). The
+                  calculation lives in CardGrid.Solve and is verified there.
+                -->
+                <views:CardGrid />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:GameCardViewModel">
+                <!--
+                  The card in the look of the package's HUD panel, built by Anvil (element
+                  description §3). Selected = highlighted panel, running = status band (spec
+                  s13.1): two flags, two seams, so a running selected card shows both. They reach
+                  the style as classes; the colours live in Theme/Styles/Library.axaml. A
+                  selector on IsSelected would not work — Avalonia selectors only reach
+                  AvaloniaProperties, not view model properties.
+
+                  The card carries no RUNNING tag: a screen reader hears the state in its name.
+                -->
+                <Button Classes="game-card"
+                        Classes.is-selected="{Binding IsSelected}"
+                        Classes.is-running="{Binding IsRunning}"
+                        AutomationProperties.Name="{Binding AccessibleName}"
+                        Command="{Binding $parent[ItemsControl].((vm:LibraryViewModel)DataContext).SelectCommand}"
+                        CommandParameter="{Binding}">
+                  <!--
+                    Context menu (element description §9, Spec S5.5). Since S5.5 the whole menu
+                    is a bound list: a ContextMenu that carries fixed entries and an ItemsSource
+                    at the same time shows the fixed ones and SILENTLY drops the bound list
+                    (measured 2026-09-19) — so the module groups could not be interleaved.
+
+                    This also closes the trap from the live acceptance on 2026-09-06: there is
+                    no more $parent inside the menu. The ContextMenu is itself an ItemsControl,
+                    the ascent ended there, the cast yielded null — and Avalonia disables an
+                    entry whose command binding fails, which is why "Start" was grayed out on
+                    EVERY card back then. Every row now carries its own command.
+
+                    The style hits EVERY row, so it binds to the base
+                    (GameMenuRowViewModel) and not to one of the three kinds: a binding that
+                    fails on the heading would gray out the whole menu again.
+
+                    Disabled via IsEnabled, not via CanExecute (Spec S3.3 E-G), visible and
+                    grayed out, without a tooltip (§9). A right click does not select (E-A).
+                  -->
+                  <Button.ContextMenu>
+                    <ContextMenu ItemsSource="{Binding MenuRows}">
+                      <ContextMenu.Styles>
+                        <Style Selector="ContextMenu > MenuItem" x:DataType="vm:GameMenuRowViewModel">
+                          <Setter Property="Command" Value="{Binding Command}" />
+                          <Setter Property="CommandParameter" Value="{Binding Parameter}" />
+                          <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+                          <Setter Property="Classes.caption" Value="{Binding IsCaption}" />
+                          <Setter Property="Classes.rule" Value="{Binding IsRule}" />
+                        </Style>
+                      </ContextMenu.Styles>
+                      <ContextMenu.DataTemplates>
+                        <DataTemplate DataType="vm:GameMenuActionViewModel">
+                          <TextBlock Text="{Binding Label}"
+                                     Classes.start="{Binding IsStart}"
+                                     Classes.release="{Binding IsRelease}" />
+                        </DataTemplate>
+                        <DataTemplate DataType="vm:GameMenuCaptionViewModel">
+                          <TextBlock Text="{Binding Title}" Classes="menu-caption" />
+                        </DataTemplate>
+                        <DataTemplate DataType="vm:GameMenuRuleViewModel">
+                          <Border Classes="menu-rule" />
+                        </DataTemplate>
+                      </ContextMenu.DataTemplates>
+                    </ContextMenu>
+                  </Button.ContextMenu>
+                  <!--
+                    The frame as the HUD panel draws it: 1 px around bg-raised, cut at top right
+                    and bottom left. Head, artwork and status row stack; the status row takes
+                    what a taller neighbour in the grid row leaves, so the frames of a row end
+                    level.
+                  -->
+                  <mf:ChamferBorder Classes="game-card-frame">
+                    <DockPanel>
+                      <Border DockPanel.Dock="Top" Classes="game-card-head">
+                        <Panel>
+                          <!-- The highlight's 3-px bar at the head (package: HUD panel, highlighted). -->
+                          <Border Classes="game-card-bar" IsVisible="{Binding IsSelected}" />
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="game-card-name" Text="{Binding Name}" />
+                            <TextBlock Grid.Column="1" Classes="game-card-platform"
+                                       Text="{Binding PlatformWord}"
+                                       ToolTip.Tip="{Binding PlatformTooltip}" />
+                          </Grid>
+                        </Panel>
+                      </Border>
+
+                      <!--
+                        Artwork over the full width; if it is missing, the surface stays neutral.
+                        The height follows the width in the mockup's ratio (318 × 132), so a
+                        stretched card looks like the drawn one.
+                      -->
+                      <views:AspectPanel DockPanel.Dock="Top" Classes="game-card-art"
+                                         Ratio="{x:Static views:CardGrid.ArtworkRatio}">
+                        <Image Source="{Binding Artwork}" Stretch="UniformToFill" />
+                      </views:AspectPanel>
+
+                      <!--
+                        Status row: a tag per module that can act on this game (S5.3), the star
+                        on the right. If no module can act, no tag stands here — the absence is
+                        the statement (element description §3). While the game runs the row is
+                        the status band: tinted green with a green edge at its top, laid under
+                        the row, so the card does not grow by it.
+                      -->
+                      <Panel>
+                        <mf:ChamferBorder Classes="game-card-band" IsVisible="{Binding IsRunning}" />
+                        <Border Classes="game-card-band-edge" IsVisible="{Binding IsRunning}" />
+                        <Grid Classes="game-card-status" ColumnDefinitions="*,Auto">
+                          <ItemsControl Grid.Column="0" ItemsSource="{Binding Chips}"
+                                        VerticalAlignment="Center">
+                            <ItemsControl.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                <!-- Wraps into a second line rather than cutting a tag (design delivery §3.1). -->
+                                <WrapPanel ItemSpacing="8" LineSpacing="8" />
+                              </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate DataType="vm:ModuleChipViewModel">
+                                <mf:Tag Content="{Binding Label}"
+                                        Classes.forge="{Binding IsAccent}"
+                                        Classes.success="{Binding IsAttached}" />
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+
+                          <Button Grid.Column="1" Classes="star" ToolTip.Tip="Favorite"
+                                  Command="{Binding $parent[ItemsControl].((vm:LibraryViewModel)DataContext).ToggleFavoriteCommand}"
+                                  CommandParameter="{Binding}">
+                            <Path Classes="star" Classes.is-favorite="{Binding IsFavorite}"
+                                  Data="{StaticResource IconStar}" />
+                          </Button>
+                        </Grid>
+                      </Panel>
+                    </DockPanel>
+                  </mf:ChamferBorder>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Panel>
+    </DockPanel>
+
+    <!--
+      Right column (element description §4): its own view since s13.1, the same DataContext.
+    -->
+    <views:GameColumnView Grid.Column="1" />
+
+    <!--
+      Confirmation on quitting (element description §4.1, Spec S3.4 §3.5): a window of its own
+      in the package's frame since story s14.1, modal over the main window. The state belongs to
+      the Library, so the presenter sits here. Closing the window — frame X, Esc, Alt+F4 — is
+      "Keep playing"; a game that ends or a rescan clears the state, and the window closes by
+      itself. No button grabs focus; Enter deliberately has no effect (E-M).
+    -->
+    <views:DialogPresenter IsOpen="{Binding IsStopPending}"
+                           CancelCommand="{Binding KeepPlayingCommand}">
+      <views:DialogPresenter.DialogContent>
+        <Border Classes="dialog">
+          <StackPanel>
+            <TextBlock Classes="dialog-title" Text="{Binding PendingStopTitle}" />
+            <TextBlock Classes="dialog-text" Text="Unsaved in-game progress may be lost." />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="9">
+              <Button Classes="dialog-cancel" Content="Keep playing"
+                      Command="{Binding KeepPlayingCommand}" />
+              <Button Classes="dialog-confirm" Content="Stop game"
+                      Command="{Binding ConfirmStopCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </views:DialogPresenter.DialogContent>
+    </views:DialogPresenter>
+  </Grid>
+</UserControl>

@@ -1,0 +1,24 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    The look of Anvil, one file per area (plan s13.1, I-1); the views hold only the structure.
+
+    THE ORDER COUNTS. Of two rules that set the same property of the same element with equal
+    weight, Avalonia applies the later one — selector specificity plays no part (measured in
+    story s13.1, see TextBlock.card-title.not-possible in BridgeCard.axaml). Common comes first, so
+    an area overrides a shared rule in its own file; the areas keep the order the rules had
+    in the single file before.
+  -->
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/Common.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/Page.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/Library.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/GameColumn.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/BridgeCard.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/Modules.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/Settings.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/Backups.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/Dialogs.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/About.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/SaveBar.axaml" />
+  <StyleInclude Source="avares://Anvil.App/Theme/Styles/Log.axaml" />
+</Styles>

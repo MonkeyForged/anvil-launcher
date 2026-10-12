@@ -1,0 +1,190 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Anvil.App.Views">
+  <!--
+    The About window and its LICENCE window (story s14.1, sheet 00f-about, design delivery §2 on
+    the navigation's foot and About). Both stand in a window of their own in the package's
+    frame (DialogPresenter); the frame draws title and close, these rules draw the content: bg-base,
+    24 px inside, sections 16 apart, divided by a line. Every value from the package's tokens and
+    the sheet's measures.
+  -->
+
+  <Style Selector="views|AboutView, views|LicenceView">
+    <Setter Property="Background" Value="{StaticResource BgBaseBrush}" />
+  </Style>
+  <!-- The margin sits on the content, not as padding on the ScrollViewer, which would stop it scrolling. -->
+  <Style Selector="StackPanel.about-body">
+    <Setter Property="Margin" Value="24,24,24,0" />
+    <Setter Property="Spacing" Value="16" />
+  </Style>
+  <Style Selector="ScrollViewer.about-scroller">
+    <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+  </Style>
+
+  <!--
+    The watermark: the package's own logo (512 px), no copy in Anvil (spec s14.1, decision 5).
+    The sheet greys the logo and sets it to 7 %; here the logo is the opacity mask of an ink
+    surface at 7 % (AnvilWatermark, Theme/Colors.axaml) — the same grey, from a token. 440 px,
+    centred behind the content, cut at the window's edge.
+  -->
+  <Style Selector="Border.about-watermark">
+    <Setter Property="Width" Value="440" />
+    <Setter Property="Height" Value="440" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Background" Value="{StaticResource AnvilWatermark}" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+
+  <!-- The head: the facet anvil at 64, 16 beside it name and origin. -->
+  <Style Selector="TextBlock.about-name">
+    <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
+    <Setter Property="FontSize" Value="28" />
+    <Setter Property="LineHeight" Value="32" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="1.12" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+  <!-- "by" in mono 12/16, the word mark in Chakra Petch 700 13/16 — "Monkey" muted, "Forged" forge. -->
+  <Style Selector="TextBlock.about-by">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+  </Style>
+  <Style Selector="TextBlock.about-mark">
+    <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="0.26" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+  </Style>
+
+  <!-- A section below the head: a line above, 16 below it, 8 between its rows. -->
+  <Style Selector="Border.about-section">
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Padding" Value="0,16,0,0" />
+  </Style>
+
+  <!-- VERSION, CONTACT, LICENCES: the package's label. -->
+  <Style Selector="TextBlock.about-label">
+    <Setter Property="FontFamily" Value="{StaticResource TextLabelFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextLabelFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextLabelLineHeight}" />
+    <Setter Property="FontWeight" Value="{StaticResource TextLabelFontWeight}" />
+    <Setter Property="LetterSpacing" Value="{StaticResource TextLabelLetterSpacing}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.about-version">
+    <Setter Property="FontFamily" Value="{StaticResource TextCodeFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextCodeFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextCodeLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The address is a link and selectable text at once (spec s14.1, O-3): a click opens the
+    repository in the browser (s15.10), a drag selects. forge-hot, ink under the pointer, as the sheet's link.
+  -->
+  <Style Selector="SelectableTextBlock.about-source">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+    <Setter Property="SelectionBrush" Value="{StaticResource BgForgeSoftBrush}" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="SelectableTextBlock.about-source:pointerover">
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+
+  <!-- A licence row: the part in small ink, its licence in mono 12 muted on the right. -->
+  <Style Selector="TextBlock.about-part">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.about-licence, TextBlock.about-third-party">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.about-third-party">
+    <Setter Property="Foreground" Value="{StaticResource InkFaintBrush}" />
+    <Setter Property="Margin" Value="0,4,0,0" />
+  </Style>
+  <!--
+    The measured list is longer than the sheet's selection (twelve rows, not four), so the rows
+    stand 4 apart instead of 8: the window grows by what the measurement adds, not by more air.
+  -->
+  <Style Selector="ItemsControl.about-parts">
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel Spacing="4" />
+      </ItemsPanelTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="TextBlock.about-note">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkFaintBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Margin" Value="0,4,0,0" />
+  </Style>
+
+  <!--
+    The window's buttons are the package's outline button in the small size the confirmations use
+    (Button.dialog-cancel, Dialogs.axaml): forge frame, forge-hot text. A class of its own, because
+    none of them cancels anything but CLOSE.
+  -->
+  <Style Selector="Button.about-action">
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextBlock.LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.72" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- CLOSE stands at the right, 24 below the content (sheet: gap 16 + padding-top 8) and the edge. -->
+  <Style Selector="Button.about-close">
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="Margin" Value="24" />
+  </Style>
+
+  <!--
+    LICENCE: the shipped file as it is, in mono — its lines are broken at up to 89 characters,
+    which a proportional face would leave ragged. Selectable, so a part can be copied; it scrolls
+    when the text is taller than the window allows. The margin sits on the text, not as padding
+    on the ScrollViewer, which would stop it from scrolling.
+  -->
+  <Style Selector="ScrollViewer.licence-scroller">
+    <Setter Property="MaxHeight" Value="480" />
+    <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+  </Style>
+  <Style Selector="SelectableTextBlock.licence-text">
+    <Setter Property="Margin" Value="24,24,24,0" />
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="18" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="SelectionBrush" Value="{StaticResource BgForgeSoftBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="Button.licence-close">
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="Margin" Value="24" />
+  </Style>
+</Styles>

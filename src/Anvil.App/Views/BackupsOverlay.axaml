@@ -1,0 +1,210 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Anvil.App.ViewModels"
+             xmlns:views="using:Anvil.App.Views"
+             x:Class="Anvil.App.Views.BackupsOverlay"
+             x:DataType="vm:SettingsViewModel">
+  <!--
+    The backups list and the details of one backup, over the settings page. A Panel without
+    background: while both are closed, clicks pass through to the page.
+  -->
+  <Panel>
+    <!--
+      The backups list (Spec S4.7 §3.5; since 1.3 in the package's dialog shape, Elemente-2
+      "Sicherungen"). Sits over the page, not over the sidebar — the state belongs to the
+      settings, as the Library's stop dialog belongs to it (S3.4 E-L). The dark area is a button
+      with "Close": a click beside it closes.
+    -->
+    <Panel IsVisible="{Binding Backups.IsOpen}">
+      <Button Classes="scrim" Command="{Binding Backups.CloseCommand}" />
+      <Border x:Name="BackupsList" Classes="overlay" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <DockPanel>
+
+          <!-- Head: title, explanation, the lock reason (only while a game is running), cross. -->
+          <Border DockPanel.Dock="Top" Classes="overlay-head">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Backups" Classes="dialog-title" />
+                <TextBlock Text="Copies of Steam files, taken before every save."
+                           Classes="overlay-sub" />
+                <!-- Once in the head, not per row (design 23c); warning, not danger — nothing failed. -->
+                <StackPanel Orientation="Horizontal" Spacing="8"
+                            IsVisible="{Binding Backups.HasLockNote}">
+                  <Rectangle Classes="lock-square" />
+                  <TextBlock Text="{Binding Backups.LockNote}" Classes="backup-lock-note" />
+                </StackPanel>
+              </StackPanel>
+              <Button Grid.Column="1" Classes="overlay-close"
+                      Command="{Binding Backups.CloseCommand}">
+                <Viewbox Width="16" Height="16">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="{StaticResource IconClose}" />
+                  </Canvas>
+                </Viewbox>
+              </Button>
+            </Grid>
+          </Border>
+
+          <!--
+            Empty: the shared empty-state template of §10, without an action — there is nothing
+            to create here. The minimum height is the sheet's 410 px overlay.
+          -->
+          <ContentControl DockPanel.Dock="Top" MinHeight="328" Content="{Binding Backups.EmptyState}"
+                          IsVisible="{Binding Backups.IsEmpty}" />
+
+          <!--
+            Column head: stays fixed, the list below it scrolls. MODULE left of FILE, so the row
+            reads as "when · who · which file" (design answer to 26). The columns are the sheet's
+            but MODULE: 88 instead of 72 px, so wand_bridge stands uncut (finding from s12.1) —
+            FILE gives the 16 px.
+          -->
+          <Grid DockPanel.Dock="Top" Margin="16,12,16,8"
+                ColumnDefinitions="136,88,*,56,88,52" ColumnSpacing="8"
+                IsVisible="{Binding !Backups.IsEmpty}">
+            <TextBlock Grid.Column="0" Text="TAKEN" Classes="column-head" />
+            <TextBlock Grid.Column="1" Text="MODULE" Classes="column-head" />
+            <TextBlock Grid.Column="2" Text="FILE" Classes="column-head" />
+            <TextBlock Grid.Column="3" Text="SIZE" Classes="column-head" TextAlignment="Right" />
+          </Grid>
+
+          <!--
+            THE BORDER HANGS OFF THE CONTENT, NOT THE ScrollViewer — the same rule as in the
+            game grid (LibraryView, reasoned there at length): Avalonia does not subtract a
+            ScrollViewer's padding while *measuring*, only while *arranging*. As padding, the
+            list reported content too small by the border, therefore stopped scrolling too
+            early and left the last row cut off (reported by the owner on 2026-09-08, remeasured
+            headless). Do not "clean up".
+          -->
+          <ScrollViewer Padding="0" IsVisible="{Binding !Backups.IsEmpty}">
+            <ItemsControl ItemsSource="{Binding Backups.Rows}" Margin="16,0,16,8">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:BackupRowViewModel">
+                  <Border Classes="backup-row">
+                    <Grid ColumnDefinitions="136,88,*,56,88,52" ColumnSpacing="8"
+                          RowDefinitions="Auto,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding Time}" Classes="backup-meta" />
+                      <TextBlock Grid.Column="1" Text="{Binding Module}" Classes="backup-meta" />
+                      <TextBlock Grid.Column="2" Text="{Binding FileName}" Classes="backup-file" />
+                      <TextBlock Grid.Column="3" Text="{Binding Size}" Classes="backup-meta"
+                                 TextAlignment="Right" />
+                      <!--
+                        The commands sit on the overlay, not on the row — the row is only a
+                        carrier. $parent finds the page's ViewModel (finding from S3.4).
+                      -->
+                      <Button Grid.Column="4" Classes="backup-restore" Content="Restore"
+                              IsEnabled="{Binding CanRestore}"
+                              Command="{Binding $parent[views:BackupsOverlay].((vm:SettingsViewModel)DataContext).Backups.RestoreCommand}"
+                              CommandParameter="{Binding}" />
+                      <Button Grid.Column="5" Classes="backup-delete" Content="Delete"
+                              Command="{Binding $parent[views:BackupsOverlay].((vm:SettingsViewModel)DataContext).Backups.DeleteCommand}"
+                              CommandParameter="{Binding}" />
+
+                      <!--
+                        The reason, the second line over the full width. Two elements instead of
+                        one disabled button — a restore reason should look calm, not disabled.
+                      -->
+                      <!--
+                        THE CONTENT IS AN EXPLICIT TextBlock, NOT A STRING. With
+                        Content="{Binding Reason}" the ContentPresenter builds its own TextBlock,
+                        and the selector "Button.backup-reason TextBlock" does not reach it:
+                        measured on 2026-09-09 it then stood at FontSize 14 in the button's
+                        default color and without TextTrimming — too thick, too light, hard cut
+                        off instead of trimmed (reported by the owner). Do not "simplify".
+                      -->
+                      <Button Grid.Row="1" Grid.ColumnSpan="6" Classes="backup-reason" Margin="0,2,0,0"
+                              IsVisible="{Binding CanShowDetails}"
+                              Command="{Binding $parent[views:BackupsOverlay].((vm:SettingsViewModel)DataContext).Backups.ShowDetailsCommand}"
+                              CommandParameter="{Binding}">
+                        <TextBlock Text="{Binding Reason}" />
+                      </Button>
+                      <TextBlock Grid.Row="1" Grid.ColumnSpan="6" Classes="backup-reason-plain" Margin="0,2,0,0"
+                                 IsVisible="{Binding HasPlainReason}"
+                                 Text="{Binding Reason}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+
+        </DockPanel>
+      </Border>
+    </Panel>
+
+    <!--
+      The full version of a reason (Spec S4.8 §3.7): third level, the dialog shape with a
+      different inside, 440 px as a local value overriding the dialog style. "Close" is the
+      secondary button, not the primary one — closing has no consequence.
+    -->
+    <Panel IsVisible="{Binding Backups.IsShowingDetails}">
+      <Button Classes="scrim" Command="{Binding Backups.CloseDetailsCommand}" />
+      <Border x:Name="BackupDetails" Classes="dialog" Width="440" MaxHeight="480"
+              HorizontalAlignment="Center" VerticalAlignment="Center">
+        <DockPanel>
+
+          <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,16">
+            <TextBlock Text="{Binding Backups.Details.FileName}" Classes="details-file" />
+            <TextBlock Text="{Binding Backups.Details.Meta}" Classes="details-meta" />
+            <Border Classes="details-rule" />
+          </StackPanel>
+
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                      HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Classes="dialog-cancel" Content="Close"
+                    Command="{Binding Backups.CloseDetailsCommand}" />
+          </StackPanel>
+
+          <!-- The border hangs off the content, not the ScrollViewer (reasoning in LibraryView). -->
+          <ScrollViewer Padding="0">
+            <StackPanel Spacing="16">
+              <TextBlock Text="WRITTEN AFTER THIS BACKUP" Classes="column-head" />
+              <ItemsControl ItemsSource="{Binding Backups.Details.Games}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Spacing="16" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:BackupDetailsGame">
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="{Binding Name}" Classes="details-game" />
+                      <ItemsControl ItemsSource="{Binding Fields}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <StackPanel Spacing="4" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate DataType="vm:BackupDetailsField">
+                            <Grid ColumnDefinitions="104,*" ColumnSpacing="12">
+                              <TextBlock Grid.Column="0" Text="{Binding Label}"
+                                         Classes="details-label" />
+                              <!--
+                                A WrapPanel, NOT a horizontal StackPanel. The StackPanel offers
+                                its children infinite width — TextWrapping runs into nothing
+                                there, and a long value ran past the edge (measured 371 px with
+                                300 px of room, reported by the owner). The WrapPanel passes the
+                                real width through: short values sit side by side as designed,
+                                long ones wrap.
+                              -->
+                              <WrapPanel Grid.Column="1">
+                                <TextBlock Text="{Binding Before}" Classes="details-before" />
+                                <TextBlock Text="→" Classes="details-arrow" />
+                                <TextBlock Text="{Binding After}" Classes="details-after" />
+                              </WrapPanel>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+
+        </DockPanel>
+      </Border>
+    </Panel>
+  </Panel>
+</UserControl>

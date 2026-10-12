@@ -1,0 +1,26 @@
+<Project>
+  <!-- Project-wide compiler settings; apply to every project in the solution. -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- One version number for all projects; CoreInfo.Version reads it at runtime.
+       No -dev suffix: scripts/publish.sh copies this file unchanged, so the About window of
+       the shared build shows exactly what is written here. -->
+    <Version>1.3.1</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <!-- Anvil runs on Linux only: there is no Windows target. Without this declaration the
+       platform compatibility analyzer (CA1416) warns on every call to
+       File.SetUnixFileMode/GetUnixFileMode with "unsupported on windows" - and under
+       TreatWarningsAsErrors that becomes a build error. A plain property such as
+       "SupportedOSPlatform" does not help here: the SDK only generates the assembly attribute for
+       OS-specific target frameworks (e.g. net10.0-windows); with a platform-neutral net10.0 it
+       has no effect. What actually works is setting the attribute directly. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.Versioning.SupportedOSPlatformAttribute">
+      <_Parameter1>linux</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>

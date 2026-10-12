@@ -1,0 +1,77 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Anvil.App.Views">
+  <!--
+    What the pages share: the line of text under the page header, and the empty state.
+
+    The page header itself is the package's app header without a status word (delivery.md
+    §3.1), mf:AppHeader on every page: Library and Log with their actions, Modules and Settings
+    with the title alone and this line of text under it.
+  -->
+
+  <!-- Line of text under the title: text style small, ink-muted. -->
+  <Style Selector="TextBlock.page-subtitle">
+    <Setter Property="FontFamily" Value="{DynamicResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource TextSmallLineHeight}" />
+    <Setter Property="FontWeight" Value="{DynamicResource TextSmallFontWeight}" />
+    <Setter Property="Foreground" Value="{DynamicResource InkMutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <!--
+    Empty state, one template for every page (delivery.md §2, element description §10):
+    symbol 34 px ink-faint, title h3, explanation small, at most a small secondary button;
+    8 between them, 4 more under the symbol and 8 more over the button, at most 280 wide.
+  -->
+  <Style Selector="StackPanel.empty-state">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="MaxWidth" Value="280" />
+    <Setter Property="Spacing" Value="8" />
+  </Style>
+  <!-- The symbol keeps the icon's 24 grid, so its stroke scales as in the sheet (1.6 of 24). -->
+  <Style Selector="Viewbox.empty-icon">
+    <Setter Property="Width" Value="34" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="Margin" Value="0,0,0,4" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Viewbox.empty-icon > Path">
+    <Setter Property="Width" Value="24" />
+    <Setter Property="Height" Value="24" />
+    <Setter Property="Stretch" Value="None" />
+    <Setter Property="Stroke" Value="{DynamicResource InkFaintBrush}" />
+    <Setter Property="StrokeThickness" Value="1.6" />
+    <Setter Property="StrokeLineCap" Value="Square" />
+  </Style>
+  <Style Selector="TextBlock.empty-title">
+    <Setter Property="FontFamily" Value="{DynamicResource TextH3FontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource TextH3FontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource TextH3LineHeight}" />
+    <Setter Property="FontWeight" Value="{DynamicResource TextH3FontWeight}" />
+    <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+    <Setter Property="TextAlignment" Value="Center" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="TextBlock.empty-text">
+    <Setter Property="FontFamily" Value="{DynamicResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource TextSmallLineHeight}" />
+    <Setter Property="FontWeight" Value="{DynamicResource TextSmallFontWeight}" />
+    <Setter Property="Foreground" Value="{DynamicResource InkMutedBrush}" />
+    <Setter Property="MaxWidth" Value="280" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="TextAlignment" Value="Center" />
+  </Style>
+  <!--
+    The action: the package's small secondary button. Common's Button.small dims it; here it
+    keeps the package's forge frame.
+  -->
+  <Style Selector="views|EmptyState Button.small">
+    <Setter Property="Margin" Value="0,8,0,0" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ForgeBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForgeHotBrush}" />
+  </Style>
+</Styles>

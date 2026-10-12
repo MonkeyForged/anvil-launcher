@@ -1,0 +1,103 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Anvil.App.ViewModels"
+             xmlns:views="using:Anvil.App.Views"
+             x:Class="Anvil.App.Views.AboutView"
+             x:DataType="vm:MainWindowViewModel">
+  <!--
+    The content of the About window (UC-22, sheet 00f-about); the frame of the package draws the
+    title ABOUT and the close. It reads the shell, because CLOSE is the shell's (CloseAboutCommand,
+    the same as the frame's cross) and everything else is the shell's About.
+  -->
+  <Panel ClipToBounds="True">
+
+    <Border Classes="about-watermark">
+      <Border.OpacityMask>
+        <ImageBrush Source="avares://MonkeyForged.Design.Avalonia/Generated/Logo/logo.png" Stretch="Uniform" />
+      </Border.OpacityMask>
+    </Border>
+
+    <!--
+      CLOSE stays at the foot; the rest scrolls when the screen is shorter than About
+      (DialogPresenter caps the window to the working area).
+    -->
+    <DockPanel>
+      <Button DockPanel.Dock="Bottom" Classes="about-action about-close" Content="Close"
+              Command="{Binding CloseAboutCommand}" />
+
+      <ScrollViewer Classes="about-scroller">
+        <StackPanel Classes="about-body">
+
+          <StackPanel Orientation="Horizontal" Spacing="16">
+            <Image Source="{StaticResource AnvilMarkFacet}" Width="64" Height="64" />
+            <StackPanel Spacing="2" VerticalAlignment="Center">
+              <TextBlock Classes="about-name" Text="ANVIL LAUNCHER" />
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Classes="about-by" Text="by" VerticalAlignment="Bottom" />
+                <TextBlock Classes="about-mark" VerticalAlignment="Bottom"><Run Text="MONKEY" /><Run Text="FORGED" Foreground="{StaticResource ForgeBrush}" /></TextBlock>
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+
+          <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="12">
+            <TextBlock Grid.Column="0" Classes="about-label" Text="VERSION" />
+            <TextBlock Grid.Column="1" Classes="about-version" Text="{Binding About.Version}" />
+            <Button Grid.Column="3" Classes="about-action"
+                    Content="Copy version info"
+                    Command="{Binding About.CopyVersionInfoCommand}" />
+          </Grid>
+
+          <Border Classes="about-section">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="about-label" Text="SOURCE" />
+              <!-- A click opens the repository (AboutView.axaml.cs), and so does Enter on the focused address. -->
+              <SelectableTextBlock Classes="about-source"
+                                   Text="{Binding About.SourceText}"
+                                   Tapped="OpenSourceOnTap">
+                <SelectableTextBlock.KeyBindings>
+                  <KeyBinding Gesture="Enter" Command="{Binding About.OpenSourceCommand}" />
+                </SelectableTextBlock.KeyBindings>
+              </SelectableTextBlock>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="about-section">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="about-label" Text="LICENCES" />
+              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16">
+                <TextBlock Grid.Column="0" Classes="about-part" Text="Anvil Launcher" />
+                <TextBlock Grid.Column="1" Classes="about-licence" Text="MIT" />
+                <Button Grid.Column="2" Classes="about-action"
+                        Content="View licence"
+                        Command="{Binding About.ViewLicenceCommand}" />
+              </Grid>
+              <TextBlock Classes="about-third-party" Text="Third-party" />
+              <ItemsControl Classes="about-parts" ItemsSource="{Binding About.ThirdParty}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:LicenceEntry">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                      <TextBlock Grid.Column="0" Classes="about-part" Text="{Binding Name}" />
+                      <TextBlock Grid.Column="1" Classes="about-licence" Text="{Binding Licence}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Classes="about-note"
+                         Text="Wand and Cheat Engine are not part of Anvil. They are installed separately under their own terms." />
+            </StackPanel>
+          </Border>
+
+          <!-- LICENCE: a second window over this one, which it belongs to (DialogPresenter takes this window as owner). -->
+          <views:DialogPresenter IsOpen="{Binding About.IsLicenceOpen}"
+                                 CancelCommand="{Binding About.CloseLicenceCommand}"
+                                 Title="Licence"
+                                 DialogWidth="720">
+            <views:DialogPresenter.DialogContent>
+              <views:LicenceView />
+            </views:DialogPresenter.DialogContent>
+          </views:DialogPresenter>
+        </StackPanel>
+      </ScrollViewer>
+    </DockPanel>
+  </Panel>
+</UserControl>

@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Anvil.App.ViewModels"
+             xmlns:views="using:Anvil.App.Views"
+             x:Class="Anvil.App.Views.EmptyState"
+             x:DataType="vm:EmptyState">
+  <!-- Template of the element description §10: symbol, title, explanation, at most one action. -->
+  <StackPanel Classes="empty-state">
+    <Viewbox Classes="empty-icon">
+      <Path Data="{Binding IconKey, Converter={x:Static views:ResourceLookup.Instance}}" />
+    </Viewbox>
+    <TextBlock Text="{Binding Title}" Classes="empty-title" />
+    <TextBlock Text="{Binding Explanation}" Classes="empty-text" />
+    <Button Classes="small"
+            Content="{Binding ActionLabel}" Command="{Binding Action}"
+            IsVisible="{Binding ActionLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+  </StackPanel>
+</UserControl>

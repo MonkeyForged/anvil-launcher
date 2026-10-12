@@ -1,0 +1,70 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- WinExe is the Avalonia convention for desktop apps, on Linux too. -->
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!--
+      MainWindow takes its view model in the constructor (composition root, no
+      self-lookup) and therefore has no public parameterless constructor.
+      AVLN3001 only reports that the XAML runtime loader (previewer/hot reload) cannot
+      instantiate the window itself because of that — irrelevant for the real start,
+      since Program.cs always creates it through the service provider.
+    -->
+    <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+    <!-- Version of the design package: the one place; packages/ must hold the same. -->
+    <MonkeyForgedDesignVersion>0.3.0</MonkeyForgedDesignVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Anvil.Core\Anvil.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
+    <!--
+      The design package, restored only from packages/ (nuget.config). An exact version, not a
+      range: a new version is a deliberate step (docs/use-cases.md UC-17). It brings the theme,
+      the tokens and the fonts with their licence texts (SIL OFL, licenses/ in the package).
+    -->
+    <PackageReference Include="MonkeyForged.Design.Avalonia" Version="[$(MonkeyForgedDesignVersion)]" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+  </ItemGroup>
+  <!--
+    Why: with packages/ gone, NuGet only reports "local source doesn't exist" and never names
+    the package; this check names it, its version and the expected file (UC-27).
+  -->
+  <Target Name="CheckDesignPackageFile" BeforeTargets="_GenerateRestoreGraphProjectEntry">
+    <PropertyGroup>
+      <DesignPackageFile>$(MSBuildThisFileDirectory)..\..\packages\MonkeyForged.Design.Avalonia.$(MonkeyForgedDesignVersion).nupkg</DesignPackageFile>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(DesignPackageFile)')"
+           Text="Package MonkeyForged.Design.Avalonia $(MonkeyForgedDesignVersion) not found: expected the file packages/MonkeyForged.Design.Avalonia.$(MonkeyForgedDesignVersion).nupkg in the repository root (see packages/README.md)." />
+  </Target>
+  <ItemGroup>
+    <!--
+      Window icon and tray icon (spec s13.1 "Marke"): the window shows the app icon icon-dark,
+      the tray the flat front of the facet anvil in forge (UC-24: single-colour). Window and
+      TrayIcon need bitmaps; both are generated from Assets/Brand/ with
+        rsvg-convert -w 64 -h 64 src/Anvil.App/Assets/Brand/icon-dark.svg -o src/Anvil.App/Assets/icon-dark.png
+        sed 's/currentColor/#e0621f/' src/Anvil.App/Assets/Brand/anvil-mark-flat.svg | rsvg-convert -w 64 -h 64 -o src/Anvil.App/Assets/tray.png
+      (#e0621f is the package token forge.) The SVGs are deliberately not resources.
+    -->
+    <AvaloniaResource Include="Assets/icon-dark.png" />
+    <AvaloniaResource Include="Assets/tray.png" />
+  </ItemGroup>
+  <!--
+    Anvil's licence, built in so that About shows the same text wherever the archive or the Arch
+    package put the file (spec s14.1, O-3). Its source is export/LICENSE here; in the copy that
+    scripts/publish.sh makes, export/ does not exist and the same file lies in the root as LICENSE
+    — so the root file is the fallback, or the copy would not build.
+  -->
+  <PropertyGroup>
+    <AnvilLicenceFile>$(MSBuildThisFileDirectory)..\..\export\LICENSE</AnvilLicenceFile>
+    <AnvilLicenceFile Condition="!Exists('$(AnvilLicenceFile)')">$(MSBuildThisFileDirectory)..\..\LICENSE</AnvilLicenceFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(AnvilLicenceFile)" LogicalName="Anvil.LICENSE" />
+  </ItemGroup>
+</Project>

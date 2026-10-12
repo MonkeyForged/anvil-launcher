@@ -1,0 +1,210 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mf="using:MonkeyForged.Design.Avalonia"
+        xmlns:views="using:Anvil.App.Views">
+  <!--
+    The module card of the right column (design Spalte-*, element description §6, delivery §3.3):
+    Anvil's bridge card in the look of the package's HUD panel. Measures from the sheets: frame
+    1 px line, cut 12 at top right and bottom left, head 10 × 16 with a line below, body 12 below
+    the head, 16 at the sides, 12 at the bottom.
+  -->
+  <Styles.Resources>
+    <!-- The action's glyphs as the design draws them on a 12 canvas: play 9 × 10, stop 10 × 10. -->
+    <StreamGeometry x:Key="BridgeCardPlayGlyph">M2,1 L11,6 L2,11 Z</StreamGeometry>
+    <StreamGeometry x:Key="BridgeCardStopGlyph">M1,1 H11 V11 H1 Z</StreamGeometry>
+  </Styles.Resources>
+
+  <!-- The frame and surface of the HUD panel (package Themes/HudPanel.axaml, PART_Frame). -->
+  <Style Selector="mf|ChamferBorder.bridge-card">
+    <Setter Property="Cut" Value="{StaticResource ChamferMd}" />
+    <Setter Property="Corners" Value="TopRight, BottomLeft" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="1" />
+    <Setter Property="Background" Value="{StaticResource BgRaisedBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+  </Style>
+
+  <!-- The flatter head: 10 × 16 inside (the panel's is 12 × 16), its line below. -->
+  <Style Selector="Border.bridge-head">
+    <Setter Property="Padding" Value="16,10" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+  <Style Selector="StackPanel.bridge-body">
+    <Setter Property="Margin" Value="16,12" />
+  </Style>
+  <!-- The first row is as tall as the action, 28. -->
+  <Style Selector="Grid.bridge-row">
+    <Setter Property="MinHeight" Value="28" />
+  </Style>
+
+  <!--
+    The name in the head: Chakra Petch 500, 16/22, ink.
+  -->
+  <Style Selector="views|BridgeCardView TextBlock.card-title">
+    <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="LineHeight" Value="22" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <!--
+    S3.9: the title of a module that cannot act is muted. It stands after the base rule above:
+    with equal weight Avalonia applies the later rule (story s13.1, task 1 — in 1.2.1 the muted
+    rule stood first and never took effect).
+  -->
+  <Style Selector="views|BridgeCardView TextBlock.card-title.not-possible">
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+  </Style>
+
+  <!--
+    The icon carries its stroke as a style, not as a local value — a local value would beat
+    every style. Muted when the module cannot act (S3.9, concept wandIconColor).
+  -->
+  <Style Selector="Path.card-icon">
+    <Setter Property="Stroke" Value="{StaticResource InkBrush}" />
+  </Style>
+  <Style Selector="Path.card-icon.not-possible">
+    <Setter Property="Stroke" Value="{StaticResource InkMutedBrush}" />
+  </Style>
+
+  <!--
+    The reason a module cannot act (element description §7): small, ink-muted, wrapping, over
+    the full width below the first row. The mono row under it (answer 50 d) names both
+    versions in ink-faint.
+  -->
+  <Style Selector="StackPanel.card-note">
+    <Setter Property="Margin" Value="0,8,0,0" />
+  </Style>
+  <Style Selector="StackPanel.card-note TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="StackPanel.card-note TextBlock.prepared-for">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="Foreground" Value="{StaticResource InkFaintBrush}" />
+  </Style>
+
+  <!--
+    The action (element description §6): a symbol button 28 × 28 in the package's chamfered
+    form. Play is the package's primary button (forge, symbol on-forge) from the class
+    "primary"; this rule only sets the geometry. Locked, it takes the shared locked look
+    (Common.axaml) and stays where it is.
+  -->
+  <Style Selector="Button.module-action">
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.module-action Path">
+    <Setter Property="Fill" Value="{StaticResource OnForgeBrush}" />
+  </Style>
+
+  <!--
+    Stop (Detach) filled in signal with an on-forge symbol — "forge starts, signal ends"
+    (delivery §2); Anvil's variant, the package has no signal button. The design draws no hover
+    or pressed look for it, so both repeat the resting fill: without them the primary class
+    would turn it forge-hot or forge-deep.
+  -->
+  <Style Selector="Button.module-action.stop, Button.module-action.stop:pointerover, Button.module-action.stop:pressed">
+    <Setter Property="Background" Value="{StaticResource SignalBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource OnForgeBrush}" />
+  </Style>
+
+  <!--
+    Greyed in every other case — the game does not run, the module is off or cannot act, a grip
+    is working. The face takes the shared locked look (Common.axaml); the symbol follows it by
+    hand, after the tone rules so that it beats them: with equal weight the later style wins.
+  -->
+  <Style Selector="Button.module-action:disabled Path">
+    <Setter Property="Fill" Value="{StaticResource InkFaintBrush}" />
+  </Style>
+
+  <!--
+    "Attaching…" (element description §6): small in forge-hot, in front of it a 6 px square in
+    forge that pulses at the beat of every other waiting mark, 1.8 s. The animation hangs on
+    the class, so it only runs while the grip attaches.
+  -->
+  <Style Selector="TextBlock.status-line">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.attaching-square">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="Background" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.attaching-square.is-attaching">
+    <Style.Animations>
+      <Animation Duration="0:0:1.8" IterationCount="INFINITE" Easing="SineEaseInOut">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="1" />
+        </KeyFrame>
+        <KeyFrame Cue="50%">
+          <Setter Property="Opacity" Value="0.35" />
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="1" />
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <!-- The options fold sits 8 below the first row (or the reason); its content 4 in. -->
+  <Style Selector="StackPanel.bridge-options">
+    <Setter Property="Margin" Value="0,8,0,0" />
+  </Style>
+  <Style Selector="StackPanel.bridge-options-content">
+    <Setter Property="Margin" Value="4,0,0,0" />
+  </Style>
+
+  <!--
+    The attached line, first row of the opened options (owner 2026-10-04): meta text — mono
+    12/16, letter spacing 0.04 em — in ink-muted, 4 above and 6 below, in front of it a 6 px
+    square in success. The square RESTS: it states a state one does not wait for.
+  -->
+  <Style Selector="StackPanel.attached-row">
+    <Setter Property="Margin" Value="0,4,0,6" />
+  </Style>
+  <Style Selector="TextBlock.attached-line">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.attached-square">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="Background" Value="{StaticResource SuccessBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    A checkbox of the options: the package's CheckBox, states and colours included, in the
+    design's row — at least 32 high, 4 above and below, the label in body text 8 from the box.
+  -->
+  <Style Selector="CheckBox.option">
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="Padding" Value="8,0,0,0" />
+    <Setter Property="FontFamily" Value="{StaticResource TextBodyFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextBodyFontSize}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+</Styles>

@@ -1,0 +1,191 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    The save bar at the bottom of the main window (element description §9, sheet
+    05-speicherleiste): the look of the package's status bar — bg-base, line on top, inside 8 × 16,
+    title as a label in capitals, secondary text in mono — plus small buttons on the right, at
+    least 45 high. Ten states, one build.
+  -->
+
+  <!--
+    The ground never changes (until 1.2.1 it was tinted per state): a tinted bar across the full
+    window would be more accent than the brand allows a view. Square and title carry the tone.
+  -->
+  <Style Selector="Border.save-bar">
+    <Setter Property="MinHeight" Value="45" />
+    <Setter Property="Background" Value="{DynamicResource BgBaseBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+  </Style>
+
+  <!-- Margin on the content, not on the Border, so that the rail sits flush at the lower edge. -->
+  <Style Selector="StackPanel.bar-body">
+    <Setter Property="Margin" Value="16,8" />
+    <Setter Property="Spacing" Value="6" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The first row: 28 high at least, 8 between its parts. The gap is a left margin on every part
+    after the square — a hidden part then takes its gap along.
+  -->
+  <Style Selector="Grid.bar-row">
+    <Setter Property="MinHeight" Value="28" />
+  </Style>
+  <Style Selector="Grid.bar-row > :is(Control)">
+    <Setter Property="Margin" Value="8,0,0,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Grid.bar-row > Border.save-square">
+    <Setter Property="Margin" Value="0" />
+  </Style>
+
+  <!--
+    The tone (element description §9): forge and forge-hot while unsaved and while saving, ink-muted
+    and ink while locked, waiting for preparation or interrupted (`quiet`), danger after a failure.
+  -->
+  <Style Selector="Border.save-square, Border.chain-square">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.save-square">
+    <Setter Property="Background" Value="{DynamicResource ForgeBrush}" />
+  </Style>
+  <Style Selector="TextBlock.bar-title">
+    <Setter Property="FontFamily" Value="{DynamicResource TextLabelFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource TextLabelFontSize}" />
+    <Setter Property="FontWeight" Value="{DynamicResource TextLabelFontWeight}" />
+    <Setter Property="LetterSpacing" Value="{DynamicResource TextLabelLetterSpacing}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForgeHotBrush}" />
+  </Style>
+  <Style Selector="Border.save-bar.quiet Border.save-square">
+    <Setter Property="Background" Value="{DynamicResource InkMutedBrush}" />
+  </Style>
+  <Style Selector="Border.save-bar.quiet TextBlock.bar-title">
+    <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+  </Style>
+  <Style Selector="Border.save-bar.error Border.save-square">
+    <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+  </Style>
+  <Style Selector="Border.save-bar.error TextBlock.bar-title">
+    <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+  </Style>
+
+  <!--
+    The square pulses only while writing — and in forge, not green: green means "a game is
+    running" everywhere else, and here none is (elements §9). The same beat as the running mark,
+    1.8 s (query 23f: one value for both places). The animation hangs on the class, so that it
+    runs only while the class is set.
+  -->
+  <Style Selector="Border.save-bar.is-saving Border.save-square, Border.chain-square.running">
+    <Style.Animations>
+      <Animation Duration="0:0:1.8" IterationCount="INFINITE" Easing="SineEaseInOut">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="1" />
+        </KeyFrame>
+        <KeyFrame Cue="50%">
+          <Setter Property="Opacity" Value="0.35" />
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="1" />
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <!-- Secondary text, counter, reason and the chain's labels: the package's meta text in mono. -->
+  <Style Selector="TextBlock.bar-sub, TextBlock.bar-meter, TextBlock.bar-reason, TextBlock.chain-label">
+    <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{DynamicResource InkMutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- The secondary text is the only thing allowed to truncate: it carries any number of names. -->
+  <Style Selector="TextBlock.bar-sub">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+
+  <!--
+    A lock does not speak in the grey of the secondary text (owner decision 2026-09-08):
+    whoever stands in front of a button that does not react must see the reason without
+    looking for it. Warning, not danger — nothing went wrong, it just does not work right now.
+    Applies to the lock alone; "Steam restarts when this is done" stays quiet.
+  -->
+  <Style Selector="TextBlock.bar-reason.blocked">
+    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+  </Style>
+
+  <!--
+    The two buttons: the package's secondary and primary button in its small size (the package's
+    own class `small` carries Anvil colours in Common.axaml, hence the sizes here). They stay in
+    place and lock instead of disappearing — the bar does not jump; locked, they take the package's
+    locked look (Common.axaml); no reason on the button, it stands in the bar.
+  -->
+  <Style Selector="Button.bar-quiet, Button.bar-accent">
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextBlock.LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.72" />
+  </Style>
+
+  <!--
+    The chain as a second row (requirement 30 a, elements §9): indented by square and gap onto
+    the title, connector 16 × 1 line-strong, square 6 px, mono 12. Five states, four classes —
+    upcoming and skipped look the same (`pending`).
+  -->
+  <Style Selector="ItemsControl.save-chain">
+    <Setter Property="Margin" Value="14,0,0,0" />
+  </Style>
+  <Style Selector="Border.chain-connector">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="1" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource LineStrongBrush}" />
+  </Style>
+
+  <Style Selector="Border.chain-square.done">
+    <Setter Property="Background" Value="{DynamicResource InkMutedBrush}" />
+  </Style>
+  <Style Selector="Border.chain-square.running">
+    <Setter Property="Background" Value="{DynamicResource ForgeBrush}" />
+  </Style>
+  <Style Selector="Border.chain-square.failed">
+    <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+  </Style>
+  <!-- Hollow: no surface, 1 px border in ink-faint. -->
+  <Style Selector="Border.chain-square.pending">
+    <Setter Property="BorderBrush" Value="{DynamicResource InkFaintBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <Style Selector="TextBlock.chain-label.running">
+    <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+  </Style>
+  <Style Selector="TextBlock.chain-label.pending">
+    <Setter Property="Foreground" Value="{DynamicResource InkFaintBrush}" />
+  </Style>
+  <Style Selector="TextBlock.chain-label.failed">
+    <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+  </Style>
+
+  <!--
+    The rail (mockup): 2 px forge without background, without rounding, across the whole width.
+    The package has no ProgressBar; Fluent's brings minimum dimensions (4 px high, 200 px wide),
+    border and rounding along, and a style beats the setters of the ControlTheme, so everything is
+    taken back to the rail here.
+  -->
+  <Style Selector="ProgressBar.save-rail">
+    <Setter Property="Height" Value="2" />
+    <Setter Property="MinHeight" Value="2" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource ForgeBrush}" />
+    <Setter Property="CornerRadius" Value="0" />
+  </Style>
+</Styles>

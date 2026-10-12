@@ -1,0 +1,39 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mf="using:MonkeyForged.Design.Avalonia"
+             xmlns:vm="using:Anvil.App.ViewModels"
+             xmlns:views="using:Anvil.App.Views"
+             x:Class="Anvil.App.App"
+             RequestedThemeVariant="Dark">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!--
+          The package's tokens again, before Anvil's derived tones: the theme carries them too,
+          but in Application.Styles, which loads after these resources — Colors.axaml resolves
+          the token colours with StaticResource while it loads.
+        -->
+        <ResourceInclude Source="avares://MonkeyForged.Design.Avalonia/Generated/Tokens.axaml" />
+        <ResourceInclude Source="avares://Anvil.App/Theme/Colors.axaml" />
+        <ResourceInclude Source="avares://Anvil.App/Theme/Icons.axaml" />
+        <ResourceInclude Source="avares://Anvil.App/Theme/Bare.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+      <!--
+        The symbol the package's frame shows left of the title in every window (story s14.1,
+        I-4): the facet anvil itself, not a copy. The frame lies outside the window and sees the
+        application's resources only, so the key lives here.
+      -->
+      <StaticResource x:Key="MonkeyForgedWindowIcon" ResourceKey="AnvilMarkFacet" />
+    </ResourceDictionary>
+  </Application.Resources>
+  <Application.DataTemplates>
+    <!-- An empty state is drawn the same everywhere: ContentControl + this template. -->
+    <DataTemplate DataType="vm:EmptyState">
+      <views:EmptyState />
+    </DataTemplate>
+  </Application.DataTemplates>
+  <Application.Styles>
+    <mf:MonkeyForgedTheme />
+    <StyleInclude Source="avares://Anvil.App/Theme/Controls.axaml" />
+  </Application.Styles>
+</Application>

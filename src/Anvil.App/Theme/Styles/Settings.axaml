@@ -1,0 +1,532 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mf="using:MonkeyForged.Design.Avalonia">
+  <!--
+    The Settings page (story s13.1, design sheets Settings, Settings-Offen, Settings-Auswahl,
+    Settings-CeBezug, Dependencies; element description §8): cards in the look of the package's
+    HUD panel that fold, rows, the inset boxes of selection rows and Dependencies entries, the
+    package's small combo box, its meter while fetching, need lines.
+
+    Every value comes from the package's tokens and the sheets' measures. Rules shared with other
+    areas (Button.small, the switch) are overridden only inside a settings card
+    (mf|ChamferBorder.settings-card), so the backups overlay and the dialogs on this page keep
+    their own look (plan s13.1, I-3).
+  -->
+
+  <Styles.Resources>
+    <!-- The fold arrow of the sheets: 12 px, open pointing down (svg "M2 4l4 4 4-4"). -->
+    <StreamGeometry x:Key="SettingsChevron">M2,4 L6,8 L10,4</StreamGeometry>
+  </Styles.Resources>
+
+  <!--
+    The card: the HUD panel's frame — 1 px line, cut 12 at top right and bottom left, bg-raised
+    inside. Not the package's HudPanel itself: its head holds a text and no button, and it keeps
+    its 16 px body below the head, so a folded card could not be the head alone.
+  -->
+  <Style Selector="mf|ChamferBorder.settings-card">
+    <Setter Property="Cut" Value="{StaticResource ChamferMd}" />
+    <Setter Property="Corners" Value="TopRight, BottomLeft" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="1" />
+    <Setter Property="Background" Value="{StaticResource BgRaisedBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+  </Style>
+
+  <!-- The head: the whole row folds the card. Open, a line separates it from the rows. -->
+  <Style Selector="Button.card-head">
+    <Setter Property="Theme" Value="{StaticResource BareButton}" />
+    <Setter Property="Padding" Value="16,12" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.card-head.expanded">
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+  <Style Selector="Button.card-head mf|Tag">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The fold arrows of card head and file toggle: 12 px, stroke 1.6 in ink-muted, flat ends;
+    closed they point right. Without Stretch, so the stroke stays as drawn and the turn is
+    about the arrow's centre.
+  -->
+  <Style Selector="Path.card-chevron, Path.disclosure-chevron">
+    <Setter Property="Data" Value="{StaticResource SettingsChevron}" />
+    <Setter Property="Width" Value="12" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="Stretch" Value="None" />
+    <Setter Property="Stroke" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="StrokeThickness" Value="1.6" />
+    <Setter Property="StrokeLineCap" Value="Flat" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Path.card-chevron">
+    <Setter Property="Margin" Value="0,0,10,0" />
+  </Style>
+  <Style Selector="Path.card-chevron.collapsed">
+    <Setter Property="RenderTransform" Value="rotate(-90deg)" />
+  </Style>
+
+  <!-- The HUD panel's heading (display 20/26, 500, ink) and its code (mono label, ink-muted). -->
+  <Style Selector="TextBlock.card-heading">
+    <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
+    <Setter Property="FontSize" Value="20" />
+    <Setter Property="LineHeight" Value="26" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.card-code">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="0.96" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="Margin" Value="12,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The rows below the head, 16 in from the frame. Every row draws its line below; the body
+    hides the last one by sitting 1 px into its own clip, wherever that row comes from — a
+    card's own rows or a module's section.
+  -->
+  <Style Selector="Panel.card-body">
+    <Setter Property="Margin" Value="16,0,16,4" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="Panel.card-body > StackPanel">
+    <Setter Property="Margin" Value="0,0,0,-1" />
+  </Style>
+
+  <!-- A row: 12 above and below, line below, the control 16 to the right of the text. -->
+  <Style Selector="Border.card-row">
+    <Setter Property="Padding" Value="0,12" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+  <Style Selector="TextBlock.row-label">
+    <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="LineHeight" Value="24" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+  <Style Selector="TextBlock.card-row-sub">
+    <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <!-- Centred in the row; its track ends at the row's edge like the buttons (Common: the track alone). -->
+  <Style Selector="Border.card-row ToggleSwitch.switch">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!-- The data root as a value: mono 12/16 (text style meta), ink, shortened rather than wrapped. -->
+  <Style Selector="TextBlock.path">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="MaxWidth" Value="230" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The small buttons of a card are the package's small secondary button: forge frame,
+    forge-hot text. Common's Button.small greys them for the other areas, so the card sets them
+    back. Common's hover rule stands earlier and loses to this rest rule, so the hover is set
+    here again.
+  -->
+  <Style Selector="mf|ChamferBorder.settings-card Button.small">
+    <Setter Property="BorderBrush" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="mf|ChamferBorder.settings-card Button.small:pointerover">
+    <Setter Property="BorderBrush" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+  </Style>
+
+  <!--
+    The inset box of a selection row and of a Dependencies entry (element description §8): bg-void,
+    frame line, 12 × 16 inside. The head row is at least 30 high; every part below it keeps 8 to
+    the one above as its own margin.
+  -->
+  <Style Selector="Border.dep-box">
+    <Setter Property="Background" Value="{StaticResource BgVoidBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="16,12" />
+  </Style>
+  <Style Selector="Grid.box-head">
+    <Setter Property="MinHeight" Value="30" />
+  </Style>
+  <Style Selector="Border.dep-box :is(Control).box-part">
+    <Setter Property="Margin" Value="0,8,0,0" />
+  </Style>
+  <Style Selector="TextBlock.dep-name">
+    <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="LineHeight" Value="24" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- A single version: no field, just the value in mono 14 (text style code). -->
+  <Style Selector="TextBlock.dep-version">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The field: the package's combo box at the small measure of the sheets — mono 14/20, 4 × 10
+    inside, the arrow 12 after the value. Open it takes the package's focus and its menu.
+    "none selected" is the absence of a value: ink-faint (element description §8).
+  -->
+  <Style Selector="ComboBox.settings-choice">
+    <Setter Property="Padding" Value="10,4" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="14" />
+  </Style>
+  <Style Selector="ComboBox.settings-choice /template/ ContentPresenter#ContentPresenter">
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="MaxWidth" Value="260" />
+  </Style>
+  <!-- The menu hangs from the field's left edge, as drawn, also when it is wider than the field. -->
+  <Style Selector="ComboBox.settings-choice /template/ Popup#PART_Popup">
+    <Setter Property="Placement" Value="BottomEdgeAlignedLeft" />
+  </Style>
+  <Style Selector="ComboBox.settings-choice /template/ PathIcon#DropDownGlyph">
+    <Setter Property="Margin" Value="12,0,0,0" />
+  </Style>
+  <Style Selector="ComboBox.settings-choice.none">
+    <Setter Property="Foreground" Value="{StaticResource InkFaintBrush}" />
+  </Style>
+  <Style Selector="TextBlock.settings-choice-value">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+
+  <!--
+    The open list, the package's menu: rows 32 high, 12 in; the chosen one on bg-forge-soft with
+    a forge square and forge-hot text (package). Selectors without the page in front: the list is
+    a popup, its own tree.
+  -->
+  <Style Selector="ComboBox.settings-choice > ComboBoxItem">
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.settings-choice-name">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ComboBoxItem:selected TextBlock.settings-choice-name">
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+  </Style>
+  <!-- A vendor build (element description §8: "in forge-hot with · get"). It is never selected. -->
+  <Style Selector="TextBlock.settings-choice-name.vendor">
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+  </Style>
+  <Style Selector="TextBlock.settings-choice-name.none">
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+  </Style>
+  <Style Selector="Rectangle.settings-choice-mark">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="Fill" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!--
+    The line below "none selected", across the whole menu: the row's 12 in are taken back, and
+    4 stand between line and next row (the sheet's separator "margin 4px 0").
+  -->
+  <Style Selector="Border.settings-choice-separator">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Margin" Value="-12,10,-12,-2" />
+    <Setter Property="Background" Value="{StaticResource LineBrush}" />
+  </Style>
+  <!--
+    The empty sentence in the open list (Settings-Auswahl): body font, not mono — it is a
+    sentence, not a file name. Its width caps the list's, which would otherwise grow to one line.
+  -->
+  <Style Selector="TextBlock.choice-empty">
+    <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="MaxWidth" Value="276" />
+    <Setter Property="Margin" Value="0,8,0,0" />
+  </Style>
+
+  <!--
+    The state on the right of the head row (element description §8.1): text without a surface,
+    small — ink-muted, warning when something is missing, forge-hot while something happens at
+    the user's click. A forge square of 6 in front while something runs; it pulses with the
+    app's 1.8 s beat while the row waits (installer open, checking).
+  -->
+  <Style Selector="StackPanel.dep-state-line">
+    <Setter Property="Orientation" Value="Horizontal" />
+    <Setter Property="Spacing" Value="8" />
+    <Setter Property="Margin" Value="12,0,0,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.dep-state">
+    <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.dep-state.warning">
+    <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+  </Style>
+  <Style Selector="TextBlock.dep-state.active">
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+  </Style>
+  <Style Selector="Rectangle.dep-dot">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="Fill" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Rectangle.dep-dot.is-waiting">
+    <Style.Animations>
+      <Animation Duration="0:0:1.8" IterationCount="INFINITE" Easing="SineEaseInOut">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="1" />
+        </KeyFrame>
+        <KeyFrame Cue="50%">
+          <Setter Property="Opacity" Value="0.35" />
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="1" />
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <!-- The box's action: the small secondary button, 12 after the state, shortened at long names. -->
+  <Style Selector="Button.box-action">
+    <Setter Property="Margin" Value="12,0,0,0" />
+    <Setter Property="MaxWidth" Value="260" />
+  </Style>
+  <Style Selector="Button.box-action TextBlock">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+
+  <!--
+    The sentences of a box — sub-line, shared sentence, stage instruction: small, ink-muted; the
+    one word set apart (Decline, bubblewrap) in ink (EmphasizedInlines).
+  -->
+  <Style Selector="TextBlock.dep-note">
+    <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The fetch (element description §8.1): the red sentence in danger; while running the package's
+    meter with the percent alone, Cancel beside it as the small button in signal (it ends, it
+    is no error).
+  -->
+  <Style Selector="TextBlock.fetch-error">
+    <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Margin" Value="0,8,0,0" />
+  </Style>
+  <Style Selector="Grid.fetch-row">
+    <Setter Property="Margin" Value="0,8,0,0" />
+    <Setter Property="MinHeight" Value="30" />
+  </Style>
+  <Style Selector="Grid.fetch-row mf|Meter">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.fetch-cancel, Button.fetch-cancel:pointerover">
+    <Setter Property="BorderBrush" Value="{StaticResource SignalBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource SignalBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The file toggle (Show 2 files): the sheets' fold — arrow 12 and the label in the text style
+    label, ink-muted, ink under the pointer; open, the arrow points down. A template of its own:
+    Fluent's ToggleButton colours a pressed toggle across its whole surface, and this one has none.
+  -->
+  <Style Selector="ToggleButton.disclosure">
+    <Setter Property="Margin" Value="0,8,0,0" />
+    <Setter Property="Padding" Value="0,4" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ContentPresenter Name="Face" Background="Transparent"
+                          Padding="{TemplateBinding Padding}"
+                          Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="ToggleButton.disclosure TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="0.96" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ToggleButton.disclosure:not(:checked) Path.disclosure-chevron">
+    <Setter Property="RenderTransform" Value="rotate(-90deg)" />
+  </Style>
+  <Style Selector="ToggleButton.disclosure:pointerover TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.disclosure:pointerover Path.disclosure-chevron">
+    <Setter Property="Stroke" Value="{StaticResource InkBrush}" />
+  </Style>
+
+  <!--
+    A row of the unfolded list (Dependencies "files open"): line on top, 8 above and below, the
+    mark 20 px, 12 to the name. Present is the package's ticked check box — forge with an on-forge
+    tick —, missing a dashed square in line-strong. Border knows no dashed edge, hence a Rectangle;
+    the dash 3/2 reads as dashes at 20 px.
+  -->
+  <Style Selector="Border.dep-part-row">
+    <Setter Property="Margin" Value="0,8,0,0" />
+    <Setter Property="Padding" Value="0,8" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+  </Style>
+  <Style Selector="Panel.part-mark-box">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Rectangle.part-mark">
+    <Setter Property="Fill" Value="Transparent" />
+    <Setter Property="Stroke" Value="{StaticResource LineStrongBrush}" />
+    <Setter Property="StrokeThickness" Value="1" />
+    <Setter Property="StrokeDashArray" Value="3,2" />
+  </Style>
+  <Style Selector="Rectangle.part-mark.present">
+    <Setter Property="Fill" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="StrokeThickness" Value="0" />
+  </Style>
+  <Style Selector="Path.part-tick">
+    <Setter Property="Data" Value="{StaticResource IconPartTick}" />
+    <Setter Property="Width" Value="12" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="Stroke" Value="{StaticResource OnForgeBrush}" />
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeLineCap" Value="Square" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.part-name">
+    <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.part-name.present">
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+  <!-- A file of a selection row is a name in the folder: mono (element description §8). -->
+  <Style Selector="TextBlock.part-name.file">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+  </Style>
+  <Style Selector="TextBlock.part-status">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The need line of a module card (element description §8.1): at least 30 high; a warning
+    square of 6 when something is missing, else a forge square with an on-forge tick; the text
+    small, ink-muted or warning; on the right the link in forge-hot.
+  -->
+  <Style Selector="Grid.need-line">
+    <Setter Property="MinHeight" Value="30" />
+  </Style>
+  <Style Selector="Panel.need-mark-box">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Rectangle.need-mark">
+    <Setter Property="Width" Value="14" />
+    <Setter Property="Height" Value="14" />
+    <Setter Property="Fill" Value="{StaticResource ForgeBrush}" />
+  </Style>
+  <Style Selector="Rectangle.need-mark.warning">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="Fill" Value="{StaticResource WarningBrush}" />
+  </Style>
+  <Style Selector="Path.need-check">
+    <Setter Property="Data" Value="{StaticResource IconNeedCheck}" />
+    <Setter Property="Width" Value="9" />
+    <Setter Property="Height" Value="9" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="Stroke" Value="{StaticResource OnForgeBrush}" />
+    <Setter Property="StrokeThickness" Value="1.6" />
+    <Setter Property="StrokeLineCap" Value="Square" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.need-text">
+    <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.need-text.warning">
+    <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+  </Style>
+
+  <!-- A text button without surface and frame: the bare look (Theme/Bare.axaml), forge-hot. -->
+  <Style Selector="Button.text-link">
+    <Setter Property="Theme" Value="{StaticResource BareButton}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.text-link TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+  </Style>
+  <Style Selector="Button.text-link:pointerover TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+</Styles>

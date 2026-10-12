@@ -1,0 +1,125 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    The dark scrim and the dialog shape the confirmations share: stop game (LibraryView), restore
+    and the Cheat Engine installer (SettingsView), and the backups list and details
+    (BackupsOverlay). Sheet Rueckfrage, element description Elemente-1 §4.1. From M14 the
+    confirmations stand in a window of their own (DialogPresenter, story s14.1) — the sheet's
+    30-px title bar is that window's frame; the backups list and details stay overlays with the
+    scrim and the card below.
+  -->
+
+  <!--
+    The scrim is a button: that way a click on the dark surface cancels, without code-behind,
+    and no click reaches what lies below. It wears the bare look (Theme/Bare.axaml), so the
+    pointer changes nothing.
+  -->
+  <Style Selector="Button.scrim">
+    <Setter Property="Theme" Value="{StaticResource BareButton}" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="Background" Value="{StaticResource AnvilScrim}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <!-- The package's dialog shape: bg-base, frame line, shadow-float, square, 16 px inside. -->
+  <Style Selector="Border.dialog">
+    <Setter Property="Width" Value="376" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="Background" Value="{StaticResource BgBaseBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BoxShadow" Value="{StaticResource ShadowFloat}" />
+  </Style>
+  <!--
+    In a dialog window (DialogPresenter) the window's frame is the frame: the content keeps the
+    card's surface and its 16 px inside, but no line and no shadow of its own, and fills the
+    window's width (DialogPresenter.DialogWidth, 376 on sheet Rueckfrage).
+  -->
+  <Style Selector="Window.dialog Border.dialog">
+    <Setter Property="Width" Value="NaN" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="BoxShadow" Value="none" />
+  </Style>
+  <!--
+    A dialog window shows close only (spec s14.1, sheet Rueckfrage). DialogPresenter turns
+    minimizing off, but Avalonia then only disables the frame's button, and the package shows a
+    disabled minimize at 20 % (it hides only a disabled maximize). Hidden here as the package
+    hides maximize; the main window can minimize, so its button stays enabled and visible.
+  -->
+  <Style Selector="WindowDrawnDecorations /template/ Button#PART_MinimizeButton:disabled">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="TextBlock.dialog-title">
+    <Setter Property="FontFamily" Value="{StaticResource TextH3FontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextH3FontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextH3LineHeight}" />
+    <Setter Property="FontWeight" Value="{StaticResource TextH3FontWeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <!-- 8 px below the title, 16 px above the buttons (the sheet's gap 8 plus margin 8). -->
+  <Style Selector="TextBlock.dialog-text">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Margin" Value="0,8,0,16" />
+  </Style>
+
+  <!--
+    Both answers are the package's small buttons. The cancelling one ("Keep playing", "Keep
+    current", "Cancel", "Close") is the secondary button and takes its colours from the package
+    theme. The cancel label names the consequence, not the process (§4.1).
+  -->
+  <Style Selector="Button.dialog-cancel, Button.dialog-confirm">
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextBlock.LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.72" />
+  </Style>
+
+  <!--
+    "Stop game" ends something, so it is filled signal with on-forge text — the counterpart of
+    the forge start button ("forge starts, signal ends", design delivery §2; the package has no
+    cyan button). The surface holds still under the pointer: measured in s13.1, the class rule
+    outranks the package theme's hover and press tints. The hover rule only states that for
+    ActionColorTests, which reads the first setter per selector — one rule per selector.
+  -->
+  <Style Selector="Button.dialog-confirm">
+    <Setter Property="Background" Value="{StaticResource SignalBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource SignalBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource OnForgeBrush}" />
+  </Style>
+  <Style Selector="Button.dialog-confirm:pointerover">
+    <Setter Property="Background" Value="{StaticResource SignalBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource SignalBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource OnForgeBrush}" />
+  </Style>
+
+  <!--
+    The confirmations of the settings page start something — restoring restarts Steam, the
+    other opens the installer — so their confirming button is the package's primary button in
+    forge (sheets Rueckfrage and Settings-CeBezug), with the primary's hover and press. The
+    dialog carries the class "starting": in its own window (story s14.1) it no longer stands
+    inside SettingsView, so the page can no longer pick the tone.
+  -->
+  <Style Selector="Border.dialog.starting Button.dialog-confirm">
+    <Setter Property="Background" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource OnForgeBrush}" />
+  </Style>
+  <Style Selector="Border.dialog.starting Button.dialog-confirm:pointerover">
+    <Setter Property="Background" Value="{StaticResource ForgeHotBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource ForgeHotBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource OnForgeBrush}" />
+  </Style>
+  <Style Selector="Border.dialog.starting Button.dialog-confirm:pressed">
+    <Setter Property="Background" Value="{StaticResource ForgeDeepBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource ForgeDeepBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+</Styles>

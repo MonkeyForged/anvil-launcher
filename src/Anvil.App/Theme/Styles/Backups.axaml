@@ -1,0 +1,259 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    The backups overlay and its detail popup (sheets Sicherungen*, element description
+    Elemente-2 "Sicherungen", design delivery §3.8). Text styles and colours are the package's
+    tokens: h3, small, label, meta (mono 12 with 0.04 em), code (mono 14).
+  -->
+
+  <!--
+    The backup list in the package's dialog shape: bg-base, frame line, shadow-float, square.
+    Header and column header stay fixed, only the list scrolls — with 20 backups per file that
+    is the normal case, not the edge case.
+  -->
+  <Style Selector="Border.overlay">
+    <!--
+      640 × 592 (design answer to 26, point 5). THE HEIGHT IS MaxHeight, NOT Height — measured on
+      2026-09-08: at the smallest window (1000 × 640, rows 38/*/40) the page with a visible save
+      bar is left with 562 px. As Height the overlay stuck out; as MaxHeight it is squeezed
+      cleanly and the last row stays reachable. Do not "tidy up".
+    -->
+    <Setter Property="Width" Value="640" />
+    <Setter Property="MaxHeight" Value="592" />
+    <Setter Property="Background" Value="{StaticResource BgBaseBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BoxShadow" Value="{StaticResource ShadowFloat}" />
+  </Style>
+
+  <Style Selector="Border.overlay-head">
+    <Setter Property="Padding" Value="16,16,16,12" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+  <Style Selector="TextBlock.overlay-sub">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <!-- The lock reason: a 6-px square and the sentence in warning. -->
+  <Style Selector="Rectangle.lock-square">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="Fill" Value="{StaticResource WarningBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.backup-lock-note">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+  </Style>
+
+  <!-- The close cross: a ghost button, ink-muted, ink under the pointer; no surface. -->
+  <Style Selector="Button.overlay-close">
+    <Setter Property="Theme" Value="{StaticResource BareButton}" />
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.overlay-close Path">
+    <Setter Property="Stroke" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeLineCap" Value="Square" />
+  </Style>
+  <Style Selector="Button.overlay-close:pointerover Path">
+    <Setter Property="Stroke" Value="{StaticResource InkBrush}" />
+  </Style>
+
+  <!--
+    The text style label in ink-faint: the column header of the list and the group heading of the
+    detail popup.
+  -->
+  <Style Selector="TextBlock.column-head">
+    <Setter Property="FontFamily" Value="{StaticResource TextLabelFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextLabelFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextLabelLineHeight}" />
+    <Setter Property="FontWeight" Value="{StaticResource TextLabelFontWeight}" />
+    <Setter Property="LetterSpacing" Value="{StaticResource TextLabelLetterSpacing}" />
+    <Setter Property="Foreground" Value="{StaticResource InkFaintBrush}" />
+  </Style>
+
+  <!--
+    A row of the list, separated by line. The file name carries it — it is what the user aims
+    at; time, module and size are muted.
+  -->
+  <Style Selector="Border.backup-row">
+    <Setter Property="Padding" Value="0,8" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+  </Style>
+
+  <!--
+    Time, module key and size: the sheet's meta style, mono 12 with 0.04 em. The module key is a
+    mono key, not a tag (design answer to 26, point 1): the tag carries a *state* everywhere in
+    this app. No trimming: its column is as wide as the longest key, wand_bridge.
+  -->
+  <Style Selector="TextBlock.backup-meta">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.backup-file">
+    <Setter Property="FontFamily" Value="{StaticResource TextCodeFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextCodeFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextCodeLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The two buttons per row are deliberately not equally strong (design answer to 22): Restore
+    is the package's small secondary button, Delete pure text in ink-muted, danger under the
+    pointer. Twenty equally loud buttons would no longer be a list. Restore takes its colours
+    from the package theme; locked, the shared locked look (Common.axaml).
+  -->
+  <Style Selector="Button.backup-restore">
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextBlock.LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.72" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.backup-delete">
+    <Setter Property="Theme" Value="{StaticResource BareButton}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.backup-delete:pointerover">
+    <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+  </Style>
+
+  <!--
+    The occasion row. A button without a button look, so that it inherits focus, keyboard and
+    the locked state instead of someone rebuilding that.
+
+    The dotted underline is the affordance (point 2): the weakest sign that still claims
+    something at rest — "there is more here". forge-hot only on hover, where it is confirmation
+    instead of advertising. Rejected were the accent at rest (pulls the eye away from Restore), a
+    solid line (that is a link to the outside) and "on hover only" (then only whoever already
+    knows the information exists finds it — the error of requirement 25, one step smaller).
+  -->
+  <Style Selector="Button.backup-reason">
+    <Setter Property="Theme" Value="{StaticResource BareButton}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <!--
+      Stretch, not Left: with Left the button takes its desired width and nothing limits it —
+      the text ran on and was cut off hard. Only once stretched does a limit arrive at which
+      TextTrimming can truncate.
+    -->
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.backup-reason TextBlock, TextBlock.backup-reason-plain">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector="Button.backup-reason TextBlock">
+    <Setter Property="TextDecorations">
+      <TextDecorationCollection>
+        <TextDecoration Location="Underline" StrokeThickness="1" StrokeOffset="3"
+                        StrokeDashArray="1,2"
+                        Stroke="{StaticResource InkMutedBrush}" />
+      </TextDecorationCollection>
+    </Setter>
+  </Style>
+  <Style Selector="Button.backup-reason:pointerover TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+    <Setter Property="TextDecorations">
+      <TextDecorationCollection>
+        <TextDecoration Location="Underline" StrokeThickness="1" StrokeOffset="3"
+                        StrokeDashArray="1,2"
+                        Stroke="{StaticResource ForgeHotBrush}" />
+      </TextDecorationCollection>
+    </Setter>
+  </Style>
+
+  <!--
+    The detail popup (design answer to 26, point 3): the dialog shape with a different inside.
+    Information that asks nothing and changes nothing needs no new language. Head: file name in
+    mono 16, below it time // module // size in meta, then a line.
+  -->
+  <Style Selector="TextBlock.details-file">
+    <Setter Property="FontFamily" Value="{StaticResource TextCodeFontFamily}" />
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="LineHeight" Value="{StaticResource TextCodeLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+  <Style Selector="TextBlock.details-meta">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+  </Style>
+  <Style Selector="Border.details-rule">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Margin" Value="0,12,0,0" />
+    <Setter Property="Background" Value="{StaticResource LineBrush}" />
+  </Style>
+  <Style Selector="TextBlock.details-game">
+    <Setter Property="FontFamily" Value="{StaticResource TextBodyStrongFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextBodyStrongFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextBodyStrongLineHeight}" />
+    <Setter Property="FontWeight" Value="{StaticResource TextBodyStrongFontWeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+  <Style Selector="TextBlock.details-label">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+  </Style>
+  <!-- The old value is struck through instead of omitted: it is the answer to "which state do I
+       bring back?". -->
+  <Style Selector="TextBlock.details-before, TextBlock.details-after">
+    <Setter Property="FontFamily" Value="{StaticResource TextCodeFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextCodeFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextCodeLineHeight}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="TextBlock.details-before">
+    <Setter Property="Foreground" Value="{StaticResource InkFaintBrush}" />
+    <Setter Property="TextDecorations" Value="Strikethrough" />
+  </Style>
+  <Style Selector="TextBlock.details-after">
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+  <Style Selector="TextBlock.details-arrow">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="Margin" Value="12,0" />
+  </Style>
+</Styles>

@@ -1,0 +1,144 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mf="using:MonkeyForged.Design.Avalonia"
+        xmlns:vm="using:Anvil.App.ViewModels"
+        xmlns:views="using:Anvil.App.Views"
+        xmlns:app="using:Anvil.App"
+        x:Class="Anvil.App.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="{x:Static app:StartWindowSize.PreferredWidth}"
+        Height="{x:Static app:StartWindowSize.PreferredHeight}"
+        MinWidth="1000" MinHeight="640"
+        Background="{DynamicResource BgVoidBrush}"
+        Title="Anvil"
+        Icon="avares://Anvil.App/Assets/icon-dark.png">
+  <Grid RowDefinitions="*,Auto">
+
+    <!--
+      Body: the package's navigation and the page content. The title row of 1.2.1 is gone — the
+      package's window frame draws the title bar. The navigation brings its own look; entries as
+      texts and selection as an index, because the package builds short form and spoken name from
+      the text (spec s14.1, decision 3). The foot opens About.
+    -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
+
+      <mf:SideNav Grid.Column="0"
+                  AppName="Anvil Launcher"
+                  AppIcon="{StaticResource AnvilMarkFacet}"
+                  ItemsSource="{Binding NavigationEntries}"
+                  SelectedIndex="{Binding SelectedPageIndex}"
+                  IsCollapsed="{Binding IsSidebarCollapsed}"
+                  IsAppWindowOpen="{Binding IsAboutOpen}"
+                  AppCommand="{Binding ShowAboutCommand}" />
+
+      <!--
+        About (UC-22): a window of its own in the package's frame, close only, 600 wide as on
+        sheet 00f-about; the height follows the measured licence list, at most the screen's
+        (DialogPresenter). The frame's cross, Esc and
+        Alt+F4 close it as CLOSE does.
+      -->
+      <views:DialogPresenter IsOpen="{Binding IsAboutOpen}"
+                             CancelCommand="{Binding CloseAboutCommand}"
+                             Title="About"
+                             DialogWidth="600">
+        <views:DialogPresenter.DialogContent>
+          <views:AboutView />
+        </views:DialogPresenter.DialogContent>
+      </views:DialogPresenter>
+
+      <ContentControl Grid.Column="1" Content="{Binding CurrentPage}">
+        <ContentControl.DataTemplates>
+          <!-- Four fixed mappings instead of a ViewLocator (Spec E7). -->
+          <DataTemplate DataType="vm:LibraryViewModel"><views:LibraryView /></DataTemplate>
+          <DataTemplate DataType="vm:ModulesViewModel"><views:ModulesView /></DataTemplate>
+          <DataTemplate DataType="vm:SettingsViewModel"><views:SettingsView /></DataTemplate>
+          <DataTemplate DataType="vm:LogViewModel"><views:LogView /></DataTemplate>
+        </ContentControl.DataTemplates>
+      </ContentControl>
+    </Grid>
+
+    <!--
+      The save bar (element description §9, spec s13.1 "Speicherleiste"): across the full width,
+      below navigation and content — saving is global, not a matter of the library page. Anvil's own
+      element in the look of the package's status bar, whose bar takes only two texts: square,
+      title, secondary text, then counter, reason and buttons on the right. The ground never
+      changes; square and title carry the tone. The view model alone decides which state applies.
+      While a process has a chain, a second row shows all links, and a long link adds its counter
+      and the 2 px rail at the bottom. The inner margin sits on the content, not as padding on the
+      Border — otherwise the rail would not lie on the lower edge.
+    -->
+    <Border Grid.Row="1" Name="SaveBar" Classes="save-bar"
+            DataContext="{Binding SaveBar}" x:DataType="vm:SaveBarViewModel"
+            Classes.error="{Binding IsErrorTone}"
+            Classes.quiet="{Binding IsQuietTone}"
+            Classes.is-saving="{Binding IsPulsing}"
+            IsVisible="{Binding IsVisible}">
+      <Panel>
+        <StackPanel Classes="bar-body">
+          <!-- Only the secondary text may truncate: it carries any number of names. -->
+          <Grid Classes="bar-row" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto">
+            <Border Grid.Column="0" Classes="save-square" />
+            <TextBlock Grid.Column="1" Classes="bar-title"
+                       Text="{Binding BarTitle, Converter={x:Static mf:UppercaseTextConverter.Instance}}" />
+            <TextBlock Grid.Column="2" Classes="bar-sub" Text="{Binding BarDetail}" />
+
+            <!-- The counter stands before the reason (mockup): `stage 3 of 6 · 1:48`. -->
+            <TextBlock Grid.Column="3" Classes="bar-meter"
+                       Text="{Binding MeterText}"
+                       IsVisible="{Binding HasMeter}" />
+
+            <TextBlock Grid.Column="4" Classes="bar-reason"
+                       Classes.blocked="{Binding IsBlocked}"
+                       Text="{Binding ReasonText}"
+                       IsVisible="{Binding HasReason}" />
+
+            <Button Grid.Column="5" Classes="bar-quiet"
+                    Content="{Binding LeftLabel}"
+                    IsEnabled="{Binding CanLeft}"
+                    Command="{Binding LeftCommand}" />
+            <Button Grid.Column="6" Classes="bar-accent primary"
+                    Content="{Binding RightLabel}"
+                    IsVisible="{Binding IsRightVisible}"
+                    IsEnabled="{Binding CanRight}"
+                    Command="{Binding RightCommand}" />
+          </Grid>
+
+          <!--
+            The chain (requirement 30 a). It wraps as in the mockup (flex-wrap) instead of bursting
+            the bar's width: a WrapPanel gets the real width from the vertical StackPanel. The
+            connector hangs on its own link (in front of it); the first link has none.
+          -->
+          <ItemsControl Classes="save-chain" ItemsSource="{Binding Chain}"
+                        IsVisible="{Binding HasChain}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="6" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:SaveChainItem">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Border Classes="chain-connector" IsVisible="{Binding HasConnector}" />
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Border Classes="chain-square"
+                            Classes.done="{Binding IsDone}" Classes.running="{Binding IsRunning}"
+                            Classes.failed="{Binding IsFailed}" Classes.pending="{Binding IsPending}" />
+                    <TextBlock Classes="chain-label" Text="{Binding Label}"
+                               Classes.done="{Binding IsDone}" Classes.running="{Binding IsRunning}"
+                               Classes.failed="{Binding IsFailed}" Classes.pending="{Binding IsPending}" />
+                  </StackPanel>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- The rail: share of the stages of the running link, at the bottom across the full width. -->
+        <ProgressBar Classes="save-rail" VerticalAlignment="Bottom"
+                     Minimum="0" Maximum="1" Value="{Binding RailFraction}"
+                     IsVisible="{Binding HasMeter}" />
+      </Panel>
+    </Border>
+
+  </Grid>
+</Window>

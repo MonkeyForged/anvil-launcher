@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Anvil Launcher
+GenericName=Steam Game Launcher
+Comment=Launch, patch and mod Steam games on Linux
+Exec=anvil-launcher
+Icon=anvil-launcher
+Terminal=false
+Categories=Game;Utility;
+Keywords=steam;proton;mod;launcher;
+StartupWMClass=Anvil.App

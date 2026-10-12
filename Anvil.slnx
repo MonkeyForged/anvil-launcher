@@ -1,0 +1,17 @@
+<!--
+  The solution the public repository gets.
+
+  It differs from Anvil.slnx here in one way: it does not name the test projects,
+  because tests are not exported. A solution that points at projects which are not
+  there does not build, so the copy needs its own.
+
+  Keeping two files in sync is a risk, so publish.sh checks it: this file must name
+  exactly the projects found under src/. A third project added later fails the export
+  instead of silently missing from the public build.
+-->
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Anvil.App/Anvil.App.csproj" />
+    <Project Path="src/Anvil.Core/Anvil.Core.csproj" />
+  </Folder>
+</Solution>

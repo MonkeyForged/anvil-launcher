@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mf="using:MonkeyForged.Design.Avalonia"
+             xmlns:vm="using:Anvil.App.ViewModels"
+             x:Class="Anvil.App.Views.ModulesView"
+             x:DataType="vm:ModulesViewModel">
+  <!-- The margin hangs on the content, not on the ScrollViewer (reason in LibraryView). -->
+  <ScrollViewer Padding="0">
+    <StackPanel Classes="modules-page">
+      <StackPanel Classes="modules-head">
+        <mf:AppHeader Heading="{Binding Title}" />
+        <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle" />
+      </StackPanel>
+
+      <!--
+        One HUD panel per module (Elemente-2 §8, sheet Modules): name in the head, the tag on the
+        right of it; below the description, the reason when not ready, the key; the switch on
+        the right of the description.
+      -->
+      <ItemsControl x:Name="ModuleList" ItemsSource="{Binding Modules}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="16" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:ModuleItemViewModel">
+            <!--
+              The package's panel has a code slot in its head but no place for a tag, so the tag
+              lies over the head's right end (Modules.axaml, Tag.module-tag). Class card: the
+              tool finds a module panel like every other card.
+            -->
+            <Panel>
+              <mf:HudPanel Classes="card module" Heading="{Binding DisplayName}">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Classes="module-text">
+                    <TextBlock Text="{Binding Description}" Classes="module-description" />
+                    <!-- Only when not ready (design answer to 27): the reason, in the warn tone. -->
+                    <StackPanel Classes="module-reason-row" IsVisible="{Binding HasReason}">
+                      <Border Classes="module-reason-mark" />
+                      <TextBlock Text="{Binding Reason}" Classes="module-reason" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding Key}" Classes="module-key" />
+                  </StackPanel>
+                  <ToggleSwitch Grid.Column="1" Classes="switch module-switch"
+                                IsChecked="{Binding IsEnabled}" IsEnabled="{Binding CanToggle}" />
+                </Grid>
+              </mf:HudPanel>
+              <Panel Classes="module-tag-slot">
+                <mf:Tag Classes="module-tag"
+                        Classes.forge="{Binding IsTagActive}"
+                        Classes.checking="{Binding IsTagChecking}"
+                        Classes.warning="{Binding IsTagNotReady}"
+                        Content="{Binding Tag}" />
+              </Panel>
+            </Panel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
