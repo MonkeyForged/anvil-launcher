@@ -1,0 +1,19 @@
+#!/bin/sh
+# Startet den Apphost — installiert wie ausgepackt.
+#
+# Als Paket liegt er unter /usr/lib/anvil-launcher, im entpackten Tarball in
+# bin/ neben diesem Skript. Beides muss gehen, sonst laeuft der Tarball nicht,
+# den dasselbe Release anbietet.
+#
+# `exec` statt eines Aufrufs: der Apphost ersetzt diese Shell, damit
+# Environment.ProcessPath auf das Programm zeigt und nicht auf /bin/sh. Davon
+# haengt die Exec-Zeile des Autostart-Eintrags ab (Anvil.Core/Autostart).
+
+ORT="/usr/lib/anvil-launcher"
+[ -x "$ORT/Anvil.App" ] || ORT="$(dirname "$(readlink -f "$0")")/bin"
+
+if [ ! -x "$ORT/Anvil.App" ]; then
+    echo "anvil-launcher: Anvil.App not found in $ORT" >&2
+    exit 1
+fi
+exec "$ORT/Anvil.App" "$@"

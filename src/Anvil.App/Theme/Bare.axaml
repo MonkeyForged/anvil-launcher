@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    The bare look (plan s13.1, I-6): for Anvil's buttons that are no buttons to the eye — game
+    card, star, fold heading, card heading, sidebar toggle, close cross, scrim, occasion row,
+    text link. They stay a Button for click, keyboard and focus, but the package's button theme
+    would give each of them a chamfered face, upper case, the display font and its padding. A
+    rule sets this theme on them instead (Setter Property="Theme"). ToggleButtons need no
+    counterpart: the package draws none, so they keep Fluent's toggle with the package's palette.
+
+    The template is a single ContentPresenter named as Fluent's: it draws Background,
+    BorderBrush, BorderThickness, CornerRadius and Padding of the button itself, so the area
+    rules that reach into "/template/ ContentPresenter" keep working. No state rules: hover,
+    pressed and disabled change nothing unless an area rule says so. No font setters: the text
+    takes the body style it inherits.
+  -->
+  <ControlTheme x:Key="BareButton" TargetType="Button">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ContentPresenter Name="PART_ContentPresenter"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          Padding="{TemplateBinding Padding}"
+                          Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

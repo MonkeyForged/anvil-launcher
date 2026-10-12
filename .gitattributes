@@ -1,0 +1,3 @@
+# Test-Fixtures sind byte-genaue Kopien echter Steam-Dateien: keine Zeilenenden-Umwandlung,
+# auch nicht auf einer Windows-Arbeitskopie.
+tests/Anvil.Core.Tests/Fixtures/** -text

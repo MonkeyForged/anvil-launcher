@@ -1,0 +1,102 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mf="using:MonkeyForged.Design.Avalonia">
+  <!--
+    The Modules page (sheets Modules, Modul-Marke, Modules-NichtBereit; Elemente-2 §8): one HUD
+    panel per module, its tag in the head. Measures from the sheets.
+  -->
+
+  <!-- Page: 24 around, the list 24 below the header (16 + 8 on the sheet). -->
+  <Style Selector="StackPanel.modules-page">
+    <Setter Property="Width" Value="660" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Margin" Value="24" />
+    <Setter Property="Spacing" Value="24" />
+  </Style>
+  <Style Selector="StackPanel.modules-head">
+    <Setter Property="Spacing" Value="8" />
+  </Style>
+
+  <!-- Keeps a long name clear of the tag that lies over the head (widest tag: NOT READY). -->
+  <Style Selector="mf|HudPanel.module /template/ TextBlock#PART_Heading">
+    <Setter Property="Margin" Value="0,0,104,0" />
+  </Style>
+
+  <!--
+    The tag's place: the line of the heading in the package's head — 1 frame and 12 padding
+    above it, 26 high; 16 padding and 1 frame to the right. The sheet sets the tag 2 lower than
+    the middle of that line (the browser puts it on the baseline of its own line box), measured
+    19 below the panel's top edge.
+  -->
+  <Style Selector="Panel.module-tag-slot">
+    <Setter Property="Height" Value="26" />
+    <Setter Property="Margin" Value="0,15,17,0" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+  </Style>
+  <Style Selector="mf|Tag.module-tag">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    checking (design answer to 27): the neutral tag, only its square is forge and pulses with
+    1.8 s — a check that runs is not a state to read off but one to wait for.
+  -->
+  <Style Selector="mf|Tag.module-tag.checking /template/ Border#PART_Dot">
+    <Setter Property="Background" Value="{DynamicResource ForgeBrush}" />
+    <Style.Animations>
+      <Animation Duration="0:0:1.8" IterationCount="INFINITE" Easing="SineEaseInOut">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="1" />
+        </KeyFrame>
+        <KeyFrame Cue="50%">
+          <Setter Property="Opacity" Value="0.35" />
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="1" />
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <!-- Description, reason and key one under the other, 4 apart; the switch 16 to their right. -->
+  <Style Selector="StackPanel.module-text">
+    <Setter Property="Spacing" Value="4" />
+    <Setter Property="Margin" Value="0,0,16,0" />
+  </Style>
+  <Style Selector="TextBlock.module-description">
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="StackPanel.module-reason-row">
+    <Setter Property="Orientation" Value="Horizontal" />
+    <Setter Property="Spacing" Value="8" />
+  </Style>
+  <Style Selector="Border.module-reason-mark">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource WarningBrush}" />
+  </Style>
+  <Style Selector="TextBlock.module-reason">
+    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <!-- The sheet's text style meta: mono 12 / 16, letter spacing 0.04 em. -->
+  <Style Selector="TextBlock.module-key">
+    <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{DynamicResource InkFaintBrush}" />
+  </Style>
+
+  <!--
+    The track at the top of the description and 16 inside the panel's right edge, as drawn: the
+    switch template keeps 6 above and below the track (measured: track 6 low); the column after
+    it is taken back by the shared rule (Common: the track alone).
+  -->
+  <Style Selector="ToggleSwitch.module-switch">
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="Margin" Value="0,-6" />
+  </Style>
+</Styles>

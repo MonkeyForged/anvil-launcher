@@ -1,0 +1,329 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Anvil.App.ViewModels"
+             xmlns:views="using:Anvil.App.Views"
+             xmlns:mf="using:MonkeyForged.Design.Avalonia"
+             x:Class="Anvil.App.Views.GameColumnView"
+             x:DataType="vm:LibraryViewModel">
+  <!--
+    The heading row of every fold in the right column (s11.1, element description §5): Proton
+    version, the two launch options fields, the options of each module card. One template, so the
+    four look and behave alike; what lies below a heading is drawn by its owner and hangs on
+    IsExpanded.
+
+    The whole row is the button: arrow 12 px, label in the text style "label" (capitals, as the
+    board's CSS text-transform), the unsaved square, and the value. A Grid, not a horizontal
+    StackPanel: the value has to shorten with an ellipsis, and a StackPanel offers its children
+    unlimited width. The value takes the star column and stands right-aligned in it, which is the
+    filler of the design. Muted (native and unknown games) hangs on the button: arrow, label and
+    value dim together, as the sheet Spalte-Nativ draws it.
+  -->
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="vm:FoldViewModel">
+      <Button Classes="fold" Classes.muted="{Binding IsMuted}"
+              Command="{Binding ToggleCommand}"
+              AutomationProperties.Name="{Binding Title}">
+        <Grid ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="8">
+          <!-- The design's SVG on its 12 px canvas: open points down, closed turns it right. -->
+          <Path Grid.Column="0" Classes="fold-arrow"
+                Classes.collapsed="{Binding !IsExpanded}"
+                Stroke="{Binding $parent[Button].Foreground}"
+                Data="M2,4 L6,8 L10,4" />
+          <TextBlock Grid.Column="1" Classes="fold-title"
+                     Foreground="{Binding $parent[Button].Foreground}"
+                     Text="{Binding Title, Converter={x:Static mf:UppercaseTextConverter.Instance}}" />
+          <Rectangle Grid.Column="2" Classes="unsaved-mark"
+                     IsVisible="{Binding ShowsUnsavedDot}" />
+          <TextBlock Grid.Column="3" Classes="fold-value"
+                     Text="{Binding Value}"
+                     IsVisible="{Binding ShowsValue}" />
+        </Grid>
+      </Button>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <!--
+    Right column of the library (element description §4 and §5): the head with artwork, platform
+    and state tag, name and appid line, the one start/stop button; below it the HUD panel "Game"
+    and one card per module. The DataContext is the library, like the place it stands in.
+  -->
+  <Border Background="{StaticResource BgBaseBrush}"
+          BorderBrush="{StaticResource LineBrush}" BorderThickness="1,0,0,0">
+    <Panel>
+      <ContentControl Content="{Binding DetailEmptyState}"
+                      IsVisible="{Binding SelectedCard, Converter={x:Static ObjectConverters.IsNull}}" />
+
+      <!--
+        Visibility hangs on the outer panel, because the DataContext switch below it also
+        switches the type of the compiled bindings: below the card there is no SelectedCard
+        anymore.
+      -->
+      <Panel IsVisible="{Binding SelectedCard, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <DockPanel DataContext="{Binding SelectedCard}" LastChildFill="True">
+
+          <!-- Head: artwork, name and the one button. It docks at the top and does not scroll along. -->
+          <StackPanel DockPanel.Dock="Top">
+
+            <Panel Classes="artwork">
+              <Image Source="{Binding Artwork}" Stretch="UniformToFill" />
+              <!-- The artwork runs out into the column's ground, as the sheet's gradient does. -->
+              <Border Classes="artwork-fade" />
+
+              <!--
+                Platform left, run state right, both tags of the package on their own bg-void
+                ground, readable on any picture (element description §4). The platform is a word
+                since 1.3; the reason stays in the tooltip.
+              -->
+              <Grid Classes="artwork-tags" ColumnDefinitions="Auto,*,Auto">
+                <Panel Grid.Column="0" ToolTip.Tip="{Binding PlatformTooltip}">
+                  <mf:Tag Content="Proton" IsVisible="{Binding IsWindows}" />
+                  <mf:Tag Content="Native" IsVisible="{Binding IsNativeLinux}" />
+                  <mf:Tag Content="Unknown" IsVisible="{Binding IsPlatformUnknown}" />
+                </Panel>
+                <mf:Tag Grid.Column="2" Classes.success="{Binding IsRunning}"
+                        Content="{Binding StateLabel}" />
+              </Grid>
+            </Panel>
+
+            <!-- The name overlaps the artwork's faded foot, as on the sheet (margin-top -32). -->
+            <StackPanel Classes="game-head">
+              <TextBlock Classes="game-name" Text="{Binding Name}" />
+              <TextBlock Classes="game-meta" Text="{Binding Detail.MetaLine}" />
+            </StackPanel>
+
+            <Border Padding="16,12,16,16">
+              <!--
+                The one button of the right column. It changes with the running state: forge and
+                "Start game", or signal and "Stop game" (design delivery §2). Both icons sit in the
+                button and toggle via IsVisible; they take the colour of the text, so the locked
+                look greys them along.
+
+                It is disabled while a start or stop phase is running (project plan decision 3) or
+                the launch lock is set (S4.5): unsaved changes on this game, or a save in progress.
+                Quitting stays allowed in both cases (Spec S4.5 E-O).
+
+                Via IsEnabled and not via CanExecute, because the condition hangs on *one* card and
+                a parameterized CanExecute would have to be nudged into re-evaluation by hand on
+                every phase change (Spec E-G). The bolt inside the command stays in place regardless.
+
+                The path to the command runs through the view, not through the DataContext: down
+                here it is the card, the command lives on LibraryViewModel.
+              -->
+              <Button Classes="start primary" Classes.is-running="{Binding IsRunning}"
+                      IsEnabled="{Binding CanRun}"
+                      AutomationProperties.Name="{Binding RunLabel}"
+                      Command="{Binding $parent[views:GameColumnView].((vm:LibraryViewModel)DataContext).ToggleRunCommand}"
+                      CommandParameter="{Binding}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="run-icon" Data="{StaticResource IconPlay}"
+                        Fill="{Binding $self.(TextElement.Foreground)}"
+                        IsVisible="{Binding !IsRunning}" />
+                  <Path Classes="run-icon" Data="{StaticResource IconStop}"
+                        Fill="{Binding $self.(TextElement.Foreground)}"
+                        IsVisible="{Binding IsRunning}" />
+                  <TextBlock Text="{Binding RunLabel, Converter={x:Static mf:UppercaseTextConverter.Instance}}"
+                             VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </Border>
+
+          </StackPanel>
+
+          <!--
+            The rest scrolls. The margin hangs on the content, not on the ScrollViewer: Avalonia
+            does not subtract its padding while measuring, but does while arranging
+            (docs/referenz/avalonia-layout-zyklus.md).
+          -->
+          <ScrollViewer Padding="0" AllowAutoHide="True">
+            <StackPanel Margin="16,0,16,16" Spacing="16">
+
+              <!--
+                The HUD panel "Game" (element description §5): the base app, not a module. It
+                replaces the divider row GAME of 1.2.1 — the panel's heading says the same.
+                Changes are not saved here but through the global save bar.
+              -->
+              <mf:HudPanel Classes="card" Heading="Game">
+                <StackPanel DataContext="{Binding Detail}">
+
+                  <!-- The two folder actions, one below the other: in capitals they do not fit side by side. -->
+                  <StackPanel Spacing="8">
+                    <Button Classes="small folder-action"
+                            AutomationProperties.Name="Installation folder"
+                            Command="{Binding OpenInstallFolderCommand}">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Viewbox Classes="folder-icon">
+                          <Path Data="{StaticResource IconFolder}"
+                                Stroke="{Binding $self.(TextElement.Foreground)}" />
+                        </Viewbox>
+                        <TextBlock Text="INSTALLATION FOLDER" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </Button>
+
+                    <!--
+                      Without a proven prefix the command disables itself (CanExecute) — it needs
+                      no IsEnabled beside it. No tooltip: disabled actions stay visible and grayed
+                      out, without extra text (element description §9).
+                    -->
+                    <Button Classes="small folder-action"
+                            AutomationProperties.Name="Open prefix"
+                            Command="{Binding OpenPrefixCommand}">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Viewbox Classes="folder-icon">
+                          <Path Data="{StaticResource IconPrefix}"
+                                Stroke="{Binding $self.(TextElement.Foreground)}" />
+                        </Viewbox>
+                        <TextBlock Text="OPEN PREFIX" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </Button>
+                  </StackPanel>
+
+                  <Border Classes="game-divider" />
+
+                  <!--
+                    The sections of the active modules (S4.6). The Core draws them without knowing
+                    them: the assignment is made by the DataTemplate via the concrete type — the
+                    same fixed assignment as for the pages in the main window (S1.5 E7), no
+                    ViewLocator. In v1 there is exactly one section.
+                  -->
+                  <ItemsControl ItemsSource="{Binding Sections}">
+                    <ItemsControl.DataTemplates>
+                      <DataTemplate DataType="vm:ProtonSectionViewModel">
+                        <StackPanel>
+
+                          <!--
+                            Proton version (s11.1): closed by default, the chosen version stands
+                            right in the heading. The fold is the label — the field has none of
+                            its own. The field is the package's combo box with a mono value; it is
+                            disabled for native and unknown games — there the choice is not the
+                            user's to make.
+                          -->
+                          <ContentControl Content="{Binding ProtonFold}" />
+                          <StackPanel Classes="fold-body" IsVisible="{Binding ProtonFold.IsExpanded}">
+                            <ComboBox Classes="proton"
+                                      ItemsSource="{Binding Choices}"
+                                      SelectedItem="{Binding SelectedChoice}"
+                                      IsEnabled="{Binding !IsProtonLocked}"
+                                      AutomationProperties.Name="Proton version"
+                                      ToolTip.Tip="{Binding ProtonTooltip}">
+                              <!--
+                                Closed, the field shows what the closed fold shows: the chosen name,
+                                or "not applicable" where the choice is locked (element description
+                                §5) — the locked field keeps its stored choice underneath.
+                              -->
+                              <ComboBox.SelectionBoxItemTemplate>
+                                <DataTemplate DataType="vm:ProtonChoice">
+                                  <TextBlock Text="{Binding $parent[ComboBox].((vm:ProtonSectionViewModel)DataContext).ProtonFold.Value}"
+                                             TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                                </DataTemplate>
+                              </ComboBox.SelectionBoxItemTemplate>
+                              <ComboBox.ItemTemplate>
+                                <!--
+                                  A row of the package's menu: name in mono, the source right in
+                                  mono ink-muted. The selected row carries a forge square before
+                                  the name. Too long, the source shortens, not the name (23e): a
+                                  DockPanel measures the name first with the row's width and hands
+                                  the source what is left; only a name longer than the row shortens.
+                                -->
+                                <DataTemplate DataType="vm:ProtonChoice">
+                                  <StackPanel>
+                                    <DockPanel Classes="proton-row">
+                                      <Rectangle DockPanel.Dock="Left" Classes="proton-selected"
+                                                 IsVisible="{Binding $parent[ComboBoxItem].IsSelected}" />
+                                      <TextBlock DockPanel.Dock="Left" Classes="proton-name"
+                                                 Text="{Binding Name}" />
+                                      <TextBlock Classes="proton-source" Text="{Binding Source}" />
+                                    </DockPanel>
+                                    <!-- "Auto" sits at the top, with a divider below it. -->
+                                    <Border Classes="proton-separator" IsVisible="{Binding IsAuto}" />
+                                  </StackPanel>
+                                </DataTemplate>
+                              </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <!--
+                              The origin line is never empty (Spec S4.6 §3.3.5) — every case has
+                              its sentence, so there is no visibility check of its own.
+                            -->
+                            <TextBlock Classes="field-origin" Text="{Binding ProtonOrigin}" />
+                          </StackPanel>
+
+                          <!--
+                            The user's own launch options, editable since S4.6, in the package's
+                            text field. Reported on every keystroke (Spec S4.6 E-F): the save bar is
+                            the only feedback there is, and it should appear while typing. An empty
+                            field is a valid value. Closed, the fold shows no value.
+                            NO watermark (owner, 2026-09-14, design requirement 36): the generated
+                            field below shows the placeholder in the real value.
+                          -->
+                          <ContentControl Content="{Binding CustomLaunchOptionsFold}" />
+                          <StackPanel Classes="fold-body" IsVisible="{Binding CustomLaunchOptionsFold.IsExpanded}">
+                            <TextBox AutomationProperties.Name="Custom launch options"
+                                     Text="{Binding LaunchOptions, UpdateSourceTrigger=PropertyChanged}" />
+                          </StackPanel>
+
+                          <!--
+                            The value Anvil actually writes (S2.4, design requirement 31), a fold of
+                            its own below the custom field, indented, only while that one is open.
+                            Read-only, but selectable: one wants to compare it against Steam's own
+                            field. No watermark — an empty field here means "Anvil writes nothing".
+                          -->
+                          <StackPanel Classes="generated-fold"
+                                      IsVisible="{Binding CustomLaunchOptionsFold.IsExpanded}">
+                            <ContentControl Content="{Binding GeneratedLaunchOptionsFold}" />
+                            <StackPanel Classes="fold-body"
+                                        IsVisible="{Binding GeneratedLaunchOptionsFold.IsExpanded}">
+                              <TextBox Classes="generated" IsReadOnly="True"
+                                       AutomationProperties.Name="Generated launch options"
+                                       Text="{Binding GeneratedLaunchOptions, Mode=OneWay}" />
+                              <TextBlock Classes="field-origin" Text="Launch option generated by Anvil" />
+                            </StackPanel>
+                          </StackPanel>
+
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.DataTemplates>
+                  </ItemsControl>
+
+                </StackPanel>
+              </mf:HudPanel>
+
+              <!--
+                The row MODULES (element description §5) with the link to the Modules page on the
+                right. It only appears when there is something below it: a heading without content
+                is a promise the column does not keep.
+              -->
+              <Grid Classes="modules-row" ColumnDefinitions="*,Auto"
+                    IsVisible="{Binding Detail.HasModuleCards}">
+                <TextBlock Grid.Column="0" Classes="modules-label" Text="MODULES" />
+                <Button Grid.Column="1" Classes="modules-link"
+                        AutomationProperties.Name="Manage modules"
+                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowPageCommand}"
+                        CommandParameter="{x:Type vm:ModulesViewModel}">
+                  <TextBlock Text="MANAGE MODULES" />
+                </Button>
+              </Grid>
+
+              <!--
+                One card per module that is per-game switchable and globally active (S1.4). Every
+                card has the same layout (element description §6); it is drawn by BridgeCardView.
+              -->
+              <ItemsControl ItemsSource="{Binding Detail.ModuleCards}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Spacing="16" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:ModuleCardViewModel">
+                    <views:BridgeCardView />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+            </StackPanel>
+          </ScrollViewer>
+
+        </DockPanel>
+      </Panel>
+    </Panel>
+  </Border>
+</UserControl>

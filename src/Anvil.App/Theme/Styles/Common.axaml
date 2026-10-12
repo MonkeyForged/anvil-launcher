@@ -1,0 +1,77 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mf="using:MonkeyForged.Design.Avalonia">
+  <!--
+    Rules more than one area uses: the locked button, the switch, the small button and the tag. Included
+    first, so an area can override a rule of this file in its own file (plan s13.1, I-3).
+
+    Under the design package's theme (story s13.1) a Button gets the package's face: a
+    chamfered border that draws the button's own Background, BorderBrush and Foreground. A
+    rule colours a real button on the button itself, its states included
+    (Button.x:pointerover); "/template/ ContentPresenter" reaches only the bare buttons
+    (Theme/Bare.axaml), whose presenter is the face. The face draws its frame as the whole
+    polygon and the fill inset on top, so a real button never gets a transparent Background:
+    the frame colour would fill it. An outline button keeps the package's own fill.
+  -->
+
+  <!--
+    A locked button is the package's locked look, whatever an area sets on it: flat
+    bg-overlay without a frame, ink-faint text. The rule hits the face in the package's
+    template, which beats every setter on the button — the forge start and the signal stop
+    included, so a locked start button stays grey while the game runs (test ActionColorTests).
+  -->
+  <Style Selector="Button:disabled /template/ mf|ChamferBorder#PART_Face">
+    <Setter Property="Background" Value="{DynamicResource BgOverlayBrush}" />
+    <Setter Property="BorderBrush" Value="{x:Null}" />
+  </Style>
+  <Style Selector="Button:disabled /template/ mf|ChamferBorder#PART_Face > ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource InkFaintBrush}" />
+  </Style>
+
+  <!--
+    The switch is the package's ToggleSwitch, states and colours included, as its track alone:
+    the label of a switch row stands in the row. Fluent's On/Off labels and its minimum width
+    are taken back, and the width is the track's 40 — the template keeps a 12 px column after
+    the track for a label even without one, which pushed the track away from the edge it
+    belongs to (Settings, Modules) or the status line away from it (bridge card).
+  -->
+  <Style Selector="ToggleSwitch.switch">
+    <Setter Property="OnContent" Value="{x:Null}" />
+    <Setter Property="OffContent" Value="{x:Null}" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="Width" Value="40" />
+  </Style>
+
+  <!--
+    The small button, a quiet frame in ink-muted that lights forge under the pointer: the folder
+    actions of the right column, Rescan, the empty state's action, the buttons of the Settings
+    rows and of the log page. An area that wants another tone sets it in its own file.
+  -->
+  <Style Selector="Button.small">
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineStrongBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Button.small:pointerover">
+    <Setter Property="BorderBrush" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+  </Style>
+
+  <!--
+    Every tag reads in the package's label font. The package draws a tag in the pixel font
+    Silkscreen at 10 px, which sits on 1.25 screen pixels per font pixel and blurs ("CE" reads
+    like "OE"). The tag's template follows the control's own font properties, so these three
+    setters reach its text; colour, frame, dot, height and capitals stay the package's. The size
+    is the package's own tag size (TextPixelFontSize, 10 px) rather than the label size (12 px):
+    the owner found 12 px too large (spec s15.5). The letter spacing is left alone on purpose
+    (spec s15.4).
+  -->
+  <Style Selector="mf|Tag">
+    <Setter Property="FontFamily" Value="{StaticResource TextLabelFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextPixelFontSize}" />
+    <Setter Property="FontWeight" Value="{StaticResource TextLabelFontWeight}" />
+  </Style>
+</Styles>

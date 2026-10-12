@@ -1,0 +1,102 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    The icons of the asset sheet (design sheet Assets, 1.3: square corners, square line ends) as
+    geometries. Stroke icons draw on 24×24, the facet anvil is a DrawingImage on the 130×130
+    viewBox of its SVG. No SVG library: the path data stands in the sheet, nothing more is needed.
+    IconModules and IconSettings have no counterpart on the sheet: the navigation, their only
+    user, shows the package's square instead from M14 on.
+  -->
+
+  <!-- Front of the facet anvil and the frame of its SVG viewBox, shared by both mark images. -->
+  <StreamGeometry x:Key="AnvilMarkFront">M8,20 L66,20 L80,21 L96,25 L82,31 L70,36 L64,38 L60,46 L60,58 L68,64 L80,66 L80,76 L18,76 L18,66 L30,64 L38,58 L38,46 L34,38 L16,36 L8,30 Z</StreamGeometry>
+  <StreamGeometry x:Key="AnvilMarkFrame">M-7.5,-20.5 H122.5 V109.5 H-7.5 Z</StreamGeometry>
+
+  <!--
+    The facet anvil (brand sheet "Marke", Assets/Brand/anvil-mark.svg): front forge, tops
+    forge-hot, flanks forge-deep, from the design package's tokens. The first drawing has no
+    brush and no pen: it only spans the SVG's viewBox (-7.5 -20.5 130 130), so the image keeps
+    the mark at 76 % of its width like the SVG does — a DrawingImage would otherwise shrink to
+    the polygons. No fine edge between the facets: the sheet draws it from 48 px only, and
+    inside the window the mark is smaller.
+  -->
+  <DrawingImage x:Key="AnvilMarkFacet">
+    <DrawingGroup>
+      <GeometryDrawing Geometry="{StaticResource AnvilMarkFrame}" />
+      <GeometryDrawing Brush="{DynamicResource ForgeDeepBrush}"
+                       Geometry="M80,66 L80,76 L91,69.1 L91,59.1 Z M60,46 L60,58 L71,51.1 L71,39.1 Z M64,38 L60,46 L71,39.1 L75,31.1 Z" />
+      <GeometryDrawing Brush="{DynamicResource ForgeHotBrush}"
+                       Geometry="M68,64 L80,66 L91,59.1 L79,57.1 Z M18,66 L30,64 L41,57.1 L29,59.1 Z M60,58 L68,64 L79,57.1 L71,51.1 Z M80,21 L96,25 L107,18.1 L91,14.1 Z M66,20 L80,21 L91,14.1 L77,13.1 Z M8,20 L66,20 L77,13.1 L19,13.1 Z" />
+      <GeometryDrawing Brush="{DynamicResource ForgeBrush}"
+                       Geometry="{StaticResource AnvilMarkFront}" />
+    </DrawingGroup>
+  </DrawingImage>
+
+  <!-- The single-colour facet anvil (Assets/Brand/anvil-mark-flat.svg): the front alone, same frame. -->
+  <DrawingImage x:Key="AnvilMarkFlat">
+    <DrawingGroup>
+      <GeometryDrawing Geometry="{StaticResource AnvilMarkFrame}" />
+      <GeometryDrawing Brush="{DynamicResource ForgeBrush}"
+                       Geometry="{StaticResource AnvilMarkFront}" />
+    </DrawingGroup>
+  </DrawingImage>
+
+  <StreamGeometry x:Key="IconLibrary">M3,4 H10 V20 H3 Z M14,4 H21 V11 H14 Z M14,15 H21 M14,19 H21</StreamGeometry>
+
+  <StreamGeometry x:Key="IconModules">M4.6,3 H9.4 A1.6,1.6 0 0 1 11,4.6 V9.4 A1.6,1.6 0 0 1 9.4,11 H4.6 A1.6,1.6 0 0 1 3,9.4 V4.6 A1.6,1.6 0 0 1 4.6,3 Z M14.6,3 H19.4 A1.6,1.6 0 0 1 21,4.6 V9.4 A1.6,1.6 0 0 1 19.4,11 H14.6 A1.6,1.6 0 0 1 13,9.4 V4.6 A1.6,1.6 0 0 1 14.6,3 Z M4.6,13 H9.4 A1.6,1.6 0 0 1 11,14.6 V19.4 A1.6,1.6 0 0 1 9.4,21 H4.6 A1.6,1.6 0 0 1 3,19.4 V14.6 A1.6,1.6 0 0 1 4.6,13 Z M17,13 V21 M13,17 H21</StreamGeometry>
+
+  <StreamGeometry x:Key="IconSettings">M8.8,12 A3.2,3.2 0 1 1 15.2,12 A3.2,3.2 0 1 1 8.8,12 Z M 19.4 15 a 1.7,1.7 0 0 0 0.33,1.87 l 0.06 0.06 a 2,2 0 1 1 -2.83,2.83 l -0.06 -0.06 A 1.7,1.7 0 0 0 15,19.4 a 1.7,1.7 0 0 0 -1,1.55 V 21 a 2,2 0 1 1 -4,0 v -0.09 A 1.7,1.7 0 0 0 9,19.4 a 1.7,1.7 0 0 0 -1.87,0.33 l -0.06 0.06 a 2,2 0 1 1 -2.83,-2.83 l 0.06 -0.06 A 1.7,1.7 0 0 0 4.6,15 a 1.7,1.7 0 0 0 -1.55,-1 H 3 a 2,2 0 1 1 0,-4 h 0.09 A 1.7,1.7 0 0 0 4.6,9 a 1.7,1.7 0 0 0 -0.33,-1.87 l -0.06 -0.06 a 2,2 0 1 1 2.83,-2.83 l 0.06 0.06 A 1.7,1.7 0 0 0 9,4.6 h 0.09 A 1.7,1.7 0 0 0 10,3.05 V 3 a 2,2 0 1 1 4,0 v 0.09 A 1.7,1.7 0 0 0 15,4.6 a 1.7,1.7 0 0 0 1.87,-0.33 l 0.06 -0.06 a 2,2 0 1 1 2.83,2.83 l -0.06 0.06 A 1.7,1.7 0 0 0 19.4,9 v 0.09 a 1.7,1.7 0 0 0 1.51,1 z</StreamGeometry>
+
+  <StreamGeometry x:Key="IconLog">M4,5 H20 M4,10 H20 M4,15 H14 M4,20 H11</StreamGeometry>
+
+  <StreamGeometry x:Key="IconSearch">M18,11 A7,7 0 1 1 4,11 A7,7 0 1 1 18,11 Z M20,20 L16.4,16.4</StreamGeometry>
+
+  <StreamGeometry x:Key="IconRescan">M21,12 A9,9 0 1 1 18,5.3 M21,3 V8 H16</StreamGeometry>
+
+  <!-- Empty states (icon sheet detail-panel / filter, design requirement 6). -->
+  <StreamGeometry x:Key="IconDetailPanel">M3,5 H21 V19 H3 Z M3,15 H21</StreamGeometry>
+  <StreamGeometry x:Key="IconFilter">M3,5 H21 L14,13 V19 L10,21 V13 Z</StreamGeometry>
+
+  <!-- The favourite star. It takes effect in S2.5 (Spec §10). -->
+  <StreamGeometry x:Key="IconStar">M12,3.6 L14.6,9 L20.5,9.8 L16.2,13.9 L17.2,19.8 L12,17 L6.8,19.8 L7.8,13.9 L3.5,9.8 L9.4,9 Z</StreamGeometry>
+
+  <!-- Right column (icon sheet, "Rechte Spalte und Basis"). -->
+
+  <!-- Start button; filled, not stroked. -->
+  <StreamGeometry x:Key="IconPlay">M8,5 L19,12 L8,19 Z</StreamGeometry>
+
+  <!--
+    The button while the game runs: a filled square with sharp corners (asset sheet
+    "stop"), 12 × 12 at (6,6) on the 24 grid like all the other icons.
+  -->
+  <StreamGeometry x:Key="IconStop">M6,6 H18 V18 H6 Z</StreamGeometry>
+
+  <StreamGeometry x:Key="IconFolder">M3,6 H9 L11,8 H21 V19 H3 Z</StreamGeometry>
+
+  <StreamGeometry x:Key="IconPrefix">M4,5 H20 V19 H4 Z M4,9 H20</StreamGeometry>
+
+  <!-- Close overlay (assets: "close", 14 px, stroke 2). -->
+  <StreamGeometry x:Key="IconClose">M6,6 L18,18 M18,6 L6,18</StreamGeometry>
+
+  <!-- Empty backup state (assets: "backup", folder with a lid). -->
+  <StreamGeometry x:Key="IconBackup">M4,7 H20 V19 H4 Z M4,11 H20 M9,4 H15 L16,7 H8 Z</StreamGeometry>
+
+  <!--
+    Icons of the modules (icon sheet, "Module"). Unlike the stroke icons they draw on 100×100 —
+    like the mark. Wand Bridge is the "W" of Wand; CE Bridge is an open "C".
+
+    Mind the stroke width: the sheet says 13, and that holds for 100×100. Avalonia does not scale
+    StrokeThickness with Stretch, so the call site has to convert — at 15 px display size that is
+    about 2. Taking the 13 literally gives a blob.
+  -->
+  <StreamGeometry x:Key="IconModuleWand">M20,30 L36,74 L50,46 L64,74 L80,30</StreamGeometry>
+  <!-- CE Bridge: an open "C", the arc swept from upper right to lower right. -->
+  <StreamGeometry x:Key="IconModuleCe">M72,32 A26,26 0 1 0 72,68</StreamGeometry>
+  <!--
+    S3.5b, Dependencies surface (concept, needLine / depsRow): the tick of the need line and the
+    smaller tick in the box of a component. On 24×24 as in the concept; the view puts them in a
+    Viewbox so that stroke width and position in the box follow the SVG.
+  -->
+  <StreamGeometry x:Key="IconNeedCheck">M4,12.5 L9,17.5 L20,6.5</StreamGeometry>
+  <StreamGeometry x:Key="IconPartTick">M5,13 L9,17 L19,7</StreamGeometry>
+</ResourceDictionary>

@@ -1,0 +1,124 @@
+# Builds and publishes a release as soon as a tag v* is pushed.
+#
+# This is the only place Anvil is shipped from: no AUR, no Flathub, no third
+# party. Two files are attached to the release:
+#
+#   anvil-launcher-<ver>-linux-x64.tar.gz      unpack and run
+#   anvil-launcher-<ver>-1-x86_64.pkg.tar.zst  pacman -U
+#
+# Both carry the licence texts of the bundled fonts under licenses/.
+#
+# The build is framework-dependent: about 21 MB instead of about 90 MB, at the
+# cost of needing dotnet-runtime on the target machine. On Arch that is a
+# package from the official repositories.
+#
+#   git tag v0.1.0 && git push origin v0.1.0
+#
+# A tag on any commit is enough; the workflow builds exactly that state.
+# Failed? Delete the tag (locally and on the remote) and set it again.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write        # to create the release; nothing more is needed
+
+jobs:
+  build:
+    name: Build and publish
+    # Pinned rather than ubuntu-latest, which moves to a new Ubuntu on its own
+    # schedule: a release build should change its image only on purpose.
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Take the version from the tag
+        id: version
+        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      # Build only, no tests: this repository does not carry them. The build stays
+      # as a gate because it runs from GIT here — the only place where a file shows
+      # up that was on disk but never committed.
+      - name: Build
+        run: dotnet build Anvil.slnx -c Release --nologo
+
+      - name: Publish
+        env:
+          VER: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+          NAME="anvil-launcher-$VER-linux-x64"
+          dotnet publish src/Anvil.App \
+            -c Release -r linux-x64 --self-contained false \
+            -o "$NAME/bin" --nologo
+
+          # PDBs stay out: nothing needs them at runtime, and a portable PDB
+          # carries the table of source file paths.
+          rm -f "$NAME/bin/"*.pdb
+
+          cp packaging/anvil-launcher          "$NAME/anvil-launcher"
+          cp packaging/anvil-launcher.desktop  "$NAME/anvil-launcher.desktop"
+          cp src/Anvil.App/Assets/Brand/icon-dark.svg "$NAME/anvil-launcher.svg"
+          # The notices travel with every copy: the design package is not under MIT.
+          cp LICENSE THIRD-PARTY-NOTICES.md README.md "$NAME/"
+
+          # The fonts inside the design package are SIL OFL 1.1, which wants its licence
+          # text next to every copy. Taken from the package itself, the one source;
+          # packages/ holds exactly one .nupkg. No guard of its own: unzip already fails
+          # without a package (exit 9), with a second one (exit 11, it reads the second
+          # name as a member) and when no licence text matches (exit 11).
+          unzip -q -j packages/MonkeyForged.Design.Avalonia.*.nupkg 'licenses/*-OFL.txt' \
+            -d "$NAME/licenses"
+
+          chmod +x "$NAME/anvil-launcher" "$NAME/bin/Anvil.App"
+
+          tar czf "$NAME.tar.gz" "$NAME"
+          echo "name=$NAME" >> "$GITHUB_ENV"
+
+      - name: Build the Arch package
+        env:
+          VER: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+          mkdir -p arch && cp "$name.tar.gz" packaging/PKGBUILD arch/
+
+          # The copy in the repository carries a fixed pkgver; the tag decides.
+          sed -i "s/^pkgver=.*/pkgver=$VER/" arch/PKGBUILD
+
+          # makepkg refuses to run as root and aborts verbosely otherwise.
+          docker run --rm -v "$PWD/arch:/build" archlinux:base-devel bash -c '
+            set -euo pipefail
+            # -Syu instead of -Sy: a partial upgrade is the classic way to break
+            # an Arch system. updpkgsums lives in pacman-contrib, which
+            # base-devel does not bring along.
+            pacman -Syu --noconfirm --needed pacman-contrib >/dev/null
+            useradd -m builder && chown -R builder /build
+            cd /build
+            su builder -c "
+              # The real checksum instead of SKIP: it cannot be in the repository,
+              # the tarball only comes into being here.
+              updpkgsums
+              makepkg --noconfirm --nodeps
+            "
+          '
+          cp arch/*.pkg.tar.zst .
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VER: ${{ steps.version.outputs.value }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "Anvil Launcher $VER" \
+            --generate-notes \
+            "$name.tar.gz" \
+            anvil-launcher-"$VER"-1-x86_64.pkg.tar.zst

@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Anvil.App.ViewModels"
+             xmlns:views="using:Anvil.App.Views"
+             xmlns:mf="using:MonkeyForged.Design.Avalonia"
+             x:Class="Anvil.App.Views.LogView"
+             x:DataType="vm:LogViewModel">
+  <DockPanel LastChildFill="True">
+
+    <!--
+      Header (sheet 07-log): the package's app header with Follow, Clear and Open folder; below
+      it search and module; below them the levels as the package's tabs — search, six tabs and
+      the module picker no longer fit one row (delivery.md §3.9).
+    -->
+    <StackPanel DockPanel.Dock="Top" Classes="log-header">
+      <mf:AppHeader Heading="{Binding Title}">
+        <mf:AppHeader.Actions>
+          <ToggleButton Classes="small follow" IsChecked="{Binding IsFollowing}"
+                        Content="{Binding FollowLabel}" />
+          <Button Classes="small" Content="Clear" Command="{Binding ClearCommand}" />
+          <Button Classes="small" Content="Open folder" Command="{Binding OpenFolderCommand}" />
+        </mf:AppHeader.Actions>
+      </mf:AppHeader>
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+        <!-- The package's text box has no slot for an icon: the magnifier lies over its padding. -->
+        <Panel Grid.Column="0">
+          <TextBox Classes="log-search" Text="{Binding SearchText}" PlaceholderText="Search the log …" />
+          <Viewbox Classes="log-search-icon">
+            <Path Data="{StaticResource IconSearch}" />
+          </Viewbox>
+        </Panel>
+        <ComboBox Grid.Column="1" ItemsSource="{Binding Modules}"
+                  SelectedItem="{Binding SelectedModule}">
+          <ComboBox.SelectionBoxItemTemplate>
+            <DataTemplate DataType="x:String">
+              <TextBlock Text="{Binding StringFormat='Module: {0}'}" />
+            </DataTemplate>
+          </ComboBox.SelectionBoxItemTemplate>
+        </ComboBox>
+      </Grid>
+      <Border Classes="log-levels">
+        <TabStrip ItemsSource="{x:Static vm:LogViewModel.LevelFilters}"
+                  SelectedItem="{Binding SelectedLevel}" />
+      </Border>
+    </StackPanel>
+
+    <!-- List and empty state share the area; at most one of them has content. -->
+    <Grid>
+      <!--
+        The margin sits on the content, not on the ScrollViewer (as in the game grid, where it
+        is explained at length): Avalonia does not subtract padding when *measuring* but does
+        when *arranging* — as padding, the last pixels of the newest line would be unreachable.
+      -->
+      <ScrollViewer Name="LogScroll" Padding="0">
+        <ItemsControl ItemsSource="{Binding Entries}" Margin="0,0,0,24">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <VirtualizingStackPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:LogLine">
+              <Border Classes="log-row" Classes.error="{Binding IsError}">
+                <!-- Time · level · module · message, column widths of the sheet. -->
+                <Grid ColumnDefinitions="72,72,96,*" ColumnSpacing="12">
+                  <TextBlock Grid.Column="0" Text="{Binding Time}" Classes="log-time" />
+                  <TextBlock Grid.Column="1" Classes="log-level"
+                             Text="{Binding LevelLabel, Converter={x:Static mf:UppercaseTextConverter.Instance}}"
+                             Foreground="{Binding LevelBrushKey, Converter={x:Static views:ResourceLookup.Instance}}" />
+                  <TextBlock Grid.Column="2" Text="{Binding Category}" Classes="log-cat" />
+                  <TextBlock Grid.Column="3" Text="{Binding Message}" Classes="log-msg"
+                             ToolTip.Tip="{Binding Details}" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+      <ContentControl Content="{Binding EmptyState}" Classes="log-empty" />
+    </Grid>
+  </DockPanel>
+</UserControl>

@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Anvil.App.ViewModels"
+             x:Class="Anvil.App.Views.LicenceView"
+             x:DataType="vm:MainWindowViewModel">
+  <!--
+    The content of the LICENCE window (spec s14.1, O-3): the licence file Anvil ships, built in,
+    so it reads the same wherever the archive or a package put the file. Opened from About.
+  -->
+  <!-- A DockPanel, not a StackPanel: only so the text gets the height left over when the screen caps the window. -->
+  <DockPanel>
+    <Button DockPanel.Dock="Bottom" Classes="about-action licence-close" Content="Close"
+            Command="{Binding About.CloseLicenceCommand}" />
+    <ScrollViewer Classes="licence-scroller">
+      <SelectableTextBlock Classes="licence-text" Text="{Binding About.LicenceText}" />
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

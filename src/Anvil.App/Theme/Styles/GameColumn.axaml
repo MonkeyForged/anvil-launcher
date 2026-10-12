@@ -1,0 +1,384 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Anvil.App.Views">
+  <!--
+    The right column of the library (design sheets Spalte-*, element description §4 and §5): the
+    head on the artwork, the start button, the HUD panel "Game" with its folds, the row MODULES.
+    The bridge card inside the column has its own file (BridgeCard.axaml).
+
+    Rules this column shares with other areas (Common.axaml: the small button) are overridden
+    here with a selector bound to GameColumnView; they come later than Common and win at equal
+    weight (plan s13.1, I-3). Colours are the package's tokens.
+  -->
+
+  <Styles.Resources>
+    <!--
+      The row of the Proton list in the package's menu look. A ControlTheme of its own instead of a
+      global ComboBoxItem style: the other combo boxes of the app have entries too, and a selector
+      across the popup boundary does not reach — popups are separate tree roots. No padding: the
+      row's content brings its 12 px, so the divider below "Auto" runs across the full width.
+      First in the file, so the style that hands it to the combo box finds it.
+    -->
+    <ControlTheme x:Key="ProtonMenuItem" TargetType="ComboBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Stretch" />
+        </ControlTemplate>
+      </Setter>
+      <Style Selector="^:pointerover">
+        <Setter Property="Background" Value="{StaticResource BgForgeSoftBrush}" />
+      </Style>
+      <Style Selector="^:selected">
+        <Setter Property="Background" Value="{StaticResource BgForgeSoftBrush}" />
+      </Style>
+    </ControlTheme>
+  </Styles.Resources>
+
+  <!-- Head: the artwork, 112 px, running out into the column's ground (element description §4). -->
+  <Style Selector="Panel.artwork">
+    <Setter Property="Height" Value="112" />
+    <Setter Property="Background" Value="{StaticResource BgOverlayBrush}" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <!--
+    The sheet's gradient from transparent at 30 % to bg-base: the ground itself, faded in by an
+    opacity mask. A mask reads only the alpha of its stops, so the token tone of the opaque stop
+    does not matter and no colour is invented for the fade.
+  -->
+  <Style Selector="Border.artwork-fade">
+    <Setter Property="Background" Value="{StaticResource BgBaseBrush}" />
+    <Setter Property="OpacityMask">
+      <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Offset="0.3" Color="Transparent" />
+        <GradientStop Offset="1" Color="{StaticResource BgBaseColor}" />
+      </LinearGradientBrush>
+    </Setter>
+  </Style>
+  <Style Selector="Grid.artwork-tags">
+    <Setter Property="Margin" Value="16,12,16,0" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+  </Style>
+
+  <Style Selector="StackPanel.game-head">
+    <Setter Property="Margin" Value="16,-32,16,0" />
+    <Setter Property="Spacing" Value="4" />
+  </Style>
+  <!--
+    The name in the text style h2, one line with an ellipsis. Chakra Petch is taller than its
+    32 px line: the browser takes the overhang from above and below alike, Avalonia from below
+    only, so the glyphs stood 3 px lower than on the sheet (measured in the comparison picture
+    01-spalte-bereit, glyph rows 88–107 against 85–104). The margin moves them back without
+    changing the height.
+  -->
+  <Style Selector="TextBlock.game-name">
+    <Setter Property="Margin" Value="0,-3,0,3" />
+    <Setter Property="FontFamily" Value="{StaticResource TextH2FontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextH2FontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextH2LineHeight}" />
+    <Setter Property="FontWeight" Value="{StaticResource TextH2FontWeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <!-- The line `appid … // …` in the sheet's meta style: mono 12/16, 0.04 em, ink-muted. -->
+  <Style Selector="TextBlock.game-meta">
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+
+  <!--
+    The start button is the package's primary button over the full width (element description
+    §4): forge with on-forge text; while the game runs, the same button is filled signal —
+    "forge starts, signal ends" (design delivery §2). The colours stand on the button itself, not
+    only in the class "primary": the test ActionColorTests reads them here. Because a style beats
+    the package's theme, the primary's hover and press are repeated below, before the running
+    state, so that the signal fill wins in every state — the design draws no hover for it.
+
+    Locked, the start button looks like every locked button: that rule stands in Common.axaml and
+    hits the face in the template, which wins over these setters, so a locked button stays grey
+    while the game runs.
+  -->
+  <Style Selector="Button.start">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Background" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource OnForgeBrush}" />
+  </Style>
+  <Style Selector="Button.start:pointerover">
+    <Setter Property="Background" Value="{StaticResource ForgeHotBrush}" />
+  </Style>
+  <Style Selector="Button.start:pressed">
+    <Setter Property="Background" Value="{StaticResource ForgeDeepBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+  <Style Selector="Button.start.is-running">
+    <Setter Property="Background" Value="{StaticResource SignalBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource OnForgeBrush}" />
+  </Style>
+  <!-- Play and stop at the sheet's 12 px; the fill follows the text (bound in the view). -->
+  <Style Selector="Path.run-icon">
+    <Setter Property="Width" Value="12" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!--
+    The two folder actions: the package's small secondary button over the full width, icon and
+    label from the left (sheet: forge frame, forge-hot text, bg-base fill). Common.axaml's
+    Button.small dims frame and text for the other areas; here the package's own values come back.
+  -->
+  <Style Selector="views|GameColumnView Button.small.folder-action">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="BorderBrush" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LetterSpacing" Value="0.72" />
+  </Style>
+  <Style Selector="views|GameColumnView Button.small.folder-action:pointerover">
+    <Setter Property="BorderBrush" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+  </Style>
+  <!--
+    The icon on the sheet's 24 canvas with stroke 2, scaled to 14 px by the Viewbox, so the stroke
+    scales along. Square line ends, as the brand draws its stroke icons.
+  -->
+  <Style Selector="Viewbox.folder-icon">
+    <Setter Property="Width" Value="14" />
+    <Setter Property="Height" Value="14" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Viewbox.folder-icon > Path">
+    <Setter Property="Width" Value="24" />
+    <Setter Property="Height" Value="24" />
+    <Setter Property="Stretch" Value="None" />
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeLineCap" Value="Square" />
+  </Style>
+
+  <!-- The line between the actions and the folds: 8 above, 4 below (sheet Spalte-Bereit). -->
+  <Style Selector="Border.game-divider">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Margin" Value="0,8,0,4" />
+    <Setter Property="Background" Value="{StaticResource LineBrush}" />
+  </Style>
+
+  <!--
+    The fold heading (element description §5) of the column and of the bridge card's options:
+    the whole row is the button, 24 px high — label 16 and 4 above and below. A bare Button and
+    not a Border with PointerPressed: it costs nothing and makes folding operable with the
+    keyboard. Arrow and label take the button's tone (bound in the view): ink-muted, ink under
+    the pointer, ink-faint when muted (native and unknown games).
+  -->
+  <Style Selector="views|GameColumnView Button.fold">
+    <Setter Property="Theme" Value="{StaticResource BareButton}" />
+    <Setter Property="Padding" Value="0,4" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+  </Style>
+  <Style Selector="views|GameColumnView Button.fold:pointerover">
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+  <Style Selector="views|GameColumnView Button.fold.muted">
+    <Setter Property="Foreground" Value="{StaticResource InkFaintBrush}" />
+  </Style>
+  <!-- The sheet's arrow: 12 px canvas, stroke 1.6, flat ends; closed it points right. -->
+  <Style Selector="Path.fold-arrow">
+    <Setter Property="Width" Value="12" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="Stretch" Value="None" />
+    <Setter Property="StrokeThickness" Value="1.6" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Path.fold-arrow.collapsed">
+    <Setter Property="RenderTransform" Value="rotate(-90deg)" />
+  </Style>
+  <!-- The label in the text style "label": mono 12/16, 600, 0.08 em, capitals (set in the view). -->
+  <Style Selector="views|GameColumnView TextBlock.fold-title">
+    <Setter Property="FontFamily" Value="{StaticResource TextLabelFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextLabelFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextLabelLineHeight}" />
+    <Setter Property="FontWeight" Value="{StaticResource TextLabelFontWeight}" />
+    <Setter Property="LetterSpacing" Value="{StaticResource TextLabelLetterSpacing}" />
+    <Setter Property="TextWrapping" Value="NoWrap" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!--
+    The value right in a closed heading (`Auto`, `proton-cachyos-slr`) in the meta style, ink;
+    shortened rather than pushing the label away — on one line: the HUD panel hands its content
+    wrapping down, and a long tool name broke the 24 px row in two (manual picture
+    first-change-savebar). Muted with the heading.
+  -->
+  <Style Selector="views|GameColumnView TextBlock.fold-value">
+    <Setter Property="TextWrapping" Value="NoWrap" />
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="views|GameColumnView Button.fold.muted TextBlock.fold-value">
+    <Setter Property="Foreground" Value="{StaticResource InkFaintBrush}" />
+  </Style>
+  <!--
+    "Something unsaved behind this fold": a 6 px square in forge, the tone of the save bar's mark,
+    and it rests — pulsing means "running" in Anvil (element description §5, F-4).
+  -->
+  <Style Selector="Rectangle.unsaved-mark">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="Fill" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!-- What an open fold shows: 4 above, 8 below, 8 between field and line (sheet Spalte-Offen). -->
+  <Style Selector="StackPanel.fold-body">
+    <Setter Property="Margin" Value="0,4,0,8" />
+    <Setter Property="Spacing" Value="8" />
+  </Style>
+  <!-- Generated launch options is a fold inside Custom launch options, indented 20. -->
+  <Style Selector="StackPanel.generated-fold">
+    <Setter Property="Margin" Value="20,0,0,0" />
+  </Style>
+  <!-- The line below a field: the origin of the Proton version, the caption of the generated field. -->
+  <Style Selector="TextBlock.field-origin">
+    <Setter Property="FontFamily" Value="{StaticResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <!--
+    The Proton field: the package's combo box with a mono value (element description §5) — frame,
+    focus glow when open and the flat locked look come from the package. Its list is the package's
+    menu: rows of 32 px, bg-forge-soft under the pointer and for the chosen one. It rolls from
+    eight entries on: seven and a half rows, the divider, the list's padding and frame.
+  -->
+  <Style Selector="ComboBox.proton">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="MaxDropDownHeight" Value="259" />
+    <Setter Property="ItemContainerTheme" Value="{StaticResource ProtonMenuItem}" />
+  </Style>
+  <!-- Open, the arrow points up, as the sheet Spalte-ProtonListe draws it. -->
+  <Style Selector="ComboBox.proton:dropdownopen /template/ PathIcon#DropDownGlyph">
+    <Setter Property="RenderTransform" Value="rotate(180deg)" />
+  </Style>
+  <!--
+    The list is exactly as wide as the field (sheet: 286 px under a 286 px field). The package
+    sets only a minimum, so a long tool name widened the list beyond the column, and the window
+    edge pushed it to the left.
+  -->
+  <Style Selector="ComboBox.proton /template/ Border#PopupBorder">
+    <Setter Property="Width" Value="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}" />
+  </Style>
+  <Style Selector="DockPanel.proton-row">
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="Margin" Value="12,0" />
+  </Style>
+  <Style Selector="Rectangle.proton-selected">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="Margin" Value="0,0,8,0" />
+    <Setter Property="Fill" Value="{StaticResource ForgeBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!--
+    One line each: the list inherits the wrapping of the HUD panel's content, and a source that
+    wrapped made its row taller instead of shortening.
+  -->
+  <Style Selector="TextBlock.proton-name, TextBlock.proton-source">
+    <Setter Property="TextWrapping" Value="NoWrap" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.proton-name">
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+  <Style Selector="ComboBoxItem:selected TextBlock.proton-name">
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+  </Style>
+  <Style Selector="TextBlock.proton-source">
+    <Setter Property="Margin" Value="8,0,0,0" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+  </Style>
+  <!-- The divider below "Auto" hangs on the entry, not on a row of its own (E-K). -->
+  <Style Selector="Border.proton-separator">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Margin" Value="0,4" />
+    <Setter Property="Background" Value="{StaticResource LineBrush}" />
+  </Style>
+
+  <!--
+    The generated launch options (S2.4, design requirement 31): three lines of mono 14/20 in
+    ink-muted on bg-void, framed in line instead of line-strong and without the corner mark —
+    calmer than an input field, because it is none: no focus glow, no frame under the pointer.
+    IsReadOnly instead of IsEnabled=False — a locked field would not yield text to select, and
+    selectable is expressly ordered (the value is to be compared with Steam's field).
+  -->
+  <Style Selector="TextBox.generated">
+    <Setter Property="Height" Value="72" />
+    <Setter Property="Background" Value="{StaticResource BgVoidBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="FontFamily" Value="{StaticResource TextCodeFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextCodeFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextCodeLineHeight}" />
+    <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="AcceptsReturn" Value="False" />
+  </Style>
+  <Style Selector="TextBox.generated /template/ Path#PART_CornerMark">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="TextBox.generated /template/ Border#PART_Frame">
+    <Setter Property="BoxShadow" Value="none" />
+  </Style>
+
+  <!-- The row MODULES: label ink-faint, the link MANAGE MODULES in forge-hot (element description §5). -->
+  <Style Selector="Grid.modules-row">
+    <Setter Property="Margin" Value="0,-4,0,-8" />
+  </Style>
+  <Style Selector="TextBlock.modules-label, Button.modules-link TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource TextLabelFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource TextLabelFontSize}" />
+    <Setter Property="LineHeight" Value="{StaticResource TextLabelLineHeight}" />
+    <Setter Property="FontWeight" Value="{StaticResource TextLabelFontWeight}" />
+    <Setter Property="LetterSpacing" Value="{StaticResource TextLabelLetterSpacing}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.modules-label">
+    <Setter Property="Foreground" Value="{StaticResource InkFaintBrush}" />
+  </Style>
+  <!-- A link, not a button to the eye: bare, forge-hot, ink under the pointer. -->
+  <Style Selector="Button.modules-link">
+    <Setter Property="Theme" Value="{StaticResource BareButton}" />
+    <Setter Property="Foreground" Value="{StaticResource ForgeHotBrush}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.modules-link:pointerover">
+    <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+  </Style>
+</Styles>

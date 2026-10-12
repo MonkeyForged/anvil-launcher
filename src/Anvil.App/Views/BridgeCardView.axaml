@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mf="using:MonkeyForged.Design.Avalonia"
+             xmlns:vm="using:Anvil.App.ViewModels"
+             xmlns:views="using:Anvil.App.Views"
+             x:Class="Anvil.App.Views.BridgeCardView"
+             x:DataType="vm:ModuleCardViewModel">
+  <!--
+    One module card of the right column (element description §6): Anvil's bridge card in the
+    look of the package's HUD panel — the same frame and chamfer, a flatter head. Head: icon,
+    name, state tag. First row: switch, status line, action. Below, only when there is
+    something to say: the reason a module cannot act, then the options fold. The class "card"
+    stays: the manual's crops find the card by it.
+  -->
+  <!--
+    Fluent's switch template (under the package's colours) frames its 20 px track with 6 above
+    and below; 4 each makes the switch as tall as the row, 28, as the design draws it. Here and
+    not in the style file: these keys reach every switch of the app from there.
+  -->
+  <UserControl.Resources>
+    <GridLength x:Key="ToggleSwitchPreContentMargin">4</GridLength>
+    <GridLength x:Key="ToggleSwitchPostContentMargin">4</GridLength>
+  </UserControl.Resources>
+
+  <mf:ChamferBorder Classes="card bridge-card">
+    <StackPanel>
+      <Border Classes="bridge-head">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+          <!--
+            The icon as the asset sheet draws it: a 100 canvas with a stroke of 13, shown at
+            15 px. The Viewbox scales stroke and geometry together, so the 13 carries over.
+          -->
+          <Viewbox Grid.Column="0" Width="15" Height="15" VerticalAlignment="Center"
+                   IsVisible="{Binding HasIcon}">
+            <Canvas Width="100" Height="100">
+              <Path Classes="card-icon"
+                    Classes.not-possible="{Binding IsTagNotPossible}"
+                    Data="{Binding IconKey, Converter={x:Static views:ResourceLookup.Instance}}"
+                    StrokeThickness="13"
+                    StrokeLineCap="Square" />
+            </Canvas>
+          </Viewbox>
+          <TextBlock Grid.Column="1" Classes="card-title"
+                     Classes.not-possible="{Binding IsTagNotPossible}"
+                     Text="{Binding DisplayName}" />
+          <!-- off · ready · not possible neutral, running in success (M11 finding 1). -->
+          <mf:Tag Grid.Column="2" VerticalAlignment="Center"
+                  Classes.success="{Binding IsTagRunning}"
+                  Content="{Binding Tag}" />
+        </Grid>
+      </Border>
+
+      <StackPanel Classes="bridge-body">
+        <Grid Classes="bridge-row" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+          <!--
+            S3.9 E-12: if the module cannot act here, the switch is off, disabled and without a
+            tooltip — the reason stands below it in plain text.
+          -->
+          <ToggleSwitch Grid.Column="0" Classes="switch"
+                        VerticalAlignment="Center"
+                        IsEnabled="{Binding IsSwitchEnabled}"
+                        ToolTip.Tip="{Binding SwitchTooltip}"
+                        IsChecked="{Binding IsEnabledForGame}" />
+          <!--
+            The status line between switch and action (element description §6): only while the
+            grip attaches. The square pulses — there is something to wait for, up to 120 s.
+          -->
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                      IsVisible="{Binding IsAttaching}">
+            <Border Classes="attaching-square"
+                    Classes.is-attaching="{Binding IsAttaching}" />
+            <TextBlock Classes="status-line"
+                       Text="{x:Static vm:ModuleCardViewModel.AttachingLine}" />
+          </StackPanel>
+          <!--
+            The action: symbol only, its name on hover and for screen readers — also greyed, so
+            ShowOnDisabled. It always stands, so the row does not jump; tone and operability
+            come from the view model, which knows whether attaching or detaching is meant. The
+            glyphs are the design's, on its 12 canvas at 1:1 (M11 finding 2).
+          -->
+          <Button Grid.Column="2" Classes="primary module-action"
+                  Classes.stop="{Binding IsActionRelease}"
+                  IsEnabled="{Binding IsActionEnabled}"
+                  Command="{Binding ActionCommand}"
+                  ToolTip.Tip="{Binding ActionName}"
+                  ToolTip.ShowOnDisabled="True"
+                  AutomationProperties.Name="{Binding ActionName}">
+            <Canvas Width="12" Height="12">
+              <Path Data="{StaticResource BridgeCardPlayGlyph}"
+                    IsVisible="{Binding !IsActionRelease}" />
+              <Path Data="{StaticResource BridgeCardStopGlyph}"
+                    IsVisible="{Binding IsActionRelease}" />
+            </Canvas>
+          </Button>
+        </Grid>
+
+        <!--
+          S3.9 E-12: the reason in plain text, over the full width — never behind a fold.
+          S4.2, answer 50 (d): both display names below it, in mono and fainter than the
+          sentence — otherwise "switch back in Steam" would be an instruction without a target.
+        -->
+        <StackPanel Classes="card-note" Spacing="6"
+                    IsVisible="{Binding HasImpossibleReason}">
+          <TextBlock Text="{Binding ImpossibleReason}" />
+          <TextBlock Classes="prepared-for"
+                     Text="{Binding PreparedForLine}"
+                     IsVisible="{Binding HasPreparedForLine}" />
+        </StackPanel>
+
+        <!--
+          The module's section behind its fold (Spec S5.4 E-1, s11.1): the Core draws the frame,
+          the module supplies the content. The assignment is made by the DataTemplate via the
+          concrete type — the same fixed assignment as for the GAME card's sections and the main
+          window's pages (S1.5 E7), no ViewLocator. Opened, the attached line is its first row
+          (owner 2026-10-04): tag and Stop already say the bridge is attached, the PID is a detail.
+        -->
+        <StackPanel Classes="bridge-options" IsVisible="{Binding HasOptions}">
+          <ContentControl Content="{Binding OptionsFold}" />
+          <StackPanel Classes="bridge-options-content"
+                      IsVisible="{Binding OptionsFold.IsExpanded}">
+            <StackPanel Classes="attached-row" Orientation="Horizontal" Spacing="8"
+                        IsVisible="{Binding HasAttachedLine}">
+              <Border Classes="attached-square" />
+              <TextBlock Classes="attached-line" Text="{Binding AttachedLine}" />
+            </StackPanel>
+            <ContentControl Content="{Binding Section}">
+              <ContentControl.DataTemplates>
+                <DataTemplate DataType="vm:BridgeSectionViewModel">
+                  <StackPanel>
+                    <CheckBox Classes="option"
+                              Content="Attach on game launch"
+                              IsChecked="{Binding AttachOnLaunch}" />
+                    <!-- Hidden for a bridge that cannot open its application on a game. -->
+                    <CheckBox Classes="option"
+                              Content="{Binding OpenOnGameLabel}"
+                              IsVisible="{Binding OffersOpenOnGame}"
+                              IsChecked="{Binding OpenOnGame}" />
+                    <CheckBox Classes="option"
+                              Content="{Binding QuitWithGameLabel}"
+                              IsChecked="{Binding QuitWithGame}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ContentControl.DataTemplates>
+            </ContentControl>
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </mf:ChamferBorder>
+</UserControl>

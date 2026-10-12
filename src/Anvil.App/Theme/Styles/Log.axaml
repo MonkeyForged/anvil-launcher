@@ -1,0 +1,109 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Anvil.App.Views">
+  <!--
+    The Log page (sheets 07-log, 07b-log-keintreffer, 07c-log-leer; delivery.md §3.9).
+  -->
+
+  <!-- Header: 24 to the page's edges, 8 above the list, 16 between its rows. -->
+  <Style Selector="StackPanel.log-header">
+    <Setter Property="Margin" Value="24,24,24,8" />
+    <Setter Property="Spacing" Value="16" />
+  </Style>
+
+  <!--
+    Follow, Clear and Open folder: one look, the package's small secondary button. Common's
+    Button.small dims it for the right column; on this page it keeps the package's forge frame.
+  -->
+  <Style Selector="views|LogView Button.small">
+    <Setter Property="BorderBrush" Value="{DynamicResource ForgeBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ForgeHotBrush}" />
+  </Style>
+  <!--
+    Follow stays a ToggleButton (it holds a state); the package draws no toggle, so it takes the
+    package's button theme — a ToggleButton is a Button. Pressed is the sheet's bg-forge-soft fill.
+  -->
+  <Style Selector="ToggleButton.follow">
+    <Setter Property="Theme" Value="{StaticResource {x:Type Button}}" />
+  </Style>
+  <Style Selector="ToggleButton.follow:checked">
+    <Setter Property="Background" Value="{DynamicResource BgForgeSoftBrush}" />
+  </Style>
+
+  <!-- Search: the package's text field, wide, with room on the left for the magnifier. -->
+  <Style Selector="TextBox.log-search">
+    <Setter Property="Padding" Value="38,10,12,10" />
+  </Style>
+  <!-- Sheet: 16 px, 12 from the frame, ink-muted; drawn in the icon's 24 grid, so the stroke scales with it. -->
+  <Style Selector="Viewbox.log-search-icon">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="Margin" Value="12,0,0,0" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+  <Style Selector="Viewbox.log-search-icon > Path">
+    <Setter Property="Width" Value="24" />
+    <Setter Property="Height" Value="24" />
+    <Setter Property="Stretch" Value="None" />
+    <Setter Property="Stroke" Value="{DynamicResource InkMutedBrush}" />
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeLineCap" Value="Square" />
+  </Style>
+
+  <!-- Levels: the package's tabs on a line across the page. -->
+  <Style Selector="Border.log-levels">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+
+  <!-- Log row: time · level · module · message (spec S1.6 §3.3), type of the sheet. -->
+  <Style Selector="Border.log-row">
+    <Setter Property="Padding" Value="24,4" />
+  </Style>
+  <Style Selector="Border.log-row.error">
+    <Setter Property="Background">
+      <SolidColorBrush Color="{StaticResource DangerColor}" Opacity="0.08" />
+    </Setter>
+  </Style>
+  <!-- Mono 12/16 sits 2 lower than the message's 14/20, so the baselines meet as in the sheet. -->
+  <Style Selector="TextBlock.log-time">
+    <Setter Property="Margin" Value="0,2,0,0" />
+    <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{DynamicResource InkFaintBrush}" />
+  </Style>
+  <!-- The colour comes per level from LogLine.LevelBrushKey. -->
+  <Style Selector="TextBlock.log-level">
+    <Setter Property="Margin" Value="0,2,0,0" />
+    <Setter Property="FontFamily" Value="{DynamicResource TextLabelFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource TextLabelFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource TextLabelLineHeight}" />
+    <Setter Property="FontWeight" Value="{DynamicResource TextLabelFontWeight}" />
+    <Setter Property="LetterSpacing" Value="{DynamicResource TextLabelLetterSpacing}" />
+  </Style>
+  <Style Selector="TextBlock.log-cat">
+    <Setter Property="Margin" Value="0,2,0,0" />
+    <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="LetterSpacing" Value="0.48" />
+    <Setter Property="Foreground" Value="{DynamicResource InkMutedBrush}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector="TextBlock.log-msg">
+    <Setter Property="FontFamily" Value="{DynamicResource TextSmallFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource TextSmallFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource TextSmallLineHeight}" />
+    <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <!-- The empty state centres in what the header leaves, 24 from the edges as the list. -->
+  <Style Selector="ContentControl.log-empty">
+    <Setter Property="Margin" Value="24,8,24,24" />
+  </Style>
+</Styles>

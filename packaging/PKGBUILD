@@ -1,0 +1,67 @@
+# PKGBUILD — the Arch package for Anvil Launcher.
+#
+# This package is NOT published in the AUR (owner decision 2026-09-11: shipping
+# only through GitHub releases). Two ways:
+#
+#   1. Take the finished package from the release:  pacman -U anvil-launcher-*.pkg.tar.zst
+#      It is built by .github/workflows/release.yml at every tag.
+#   2. Build it yourself: put the tarball from the release next to this PKGBUILD
+#      and run `makepkg -si`.
+#
+# It is a binary package — compiling happens beforehand in the workflow, here
+# things are only put in place. That is why dotnet-sdk is not under makedepends:
+# installing needs the runtime only.
+
+pkgname=anvil-launcher
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="A modular launcher for modding and patching Steam games on Linux"
+arch=('x86_64')
+url="https://github.com/MonkeyForged/anvil-launcher"
+# Anvil's code is MIT; the fonts bundled in the design package are SIL OFL 1.1.
+license=('MIT' 'OFL-1.1')
+
+# Built framework-dependent (owner decision 2026-09-11): about 21 MB instead of
+# about 90 MB, with the runtime as a dependency in return. On Arch that is the
+# usual form — dotnet-runtime is in the official repositories.
+depends=('dotnet-runtime' 'fontconfig' 'glibc' 'gcc-libs')
+
+# Without Steam Anvil runs but finds nothing. Not a depends, because Steam may
+# be missing too — the app says so itself instead of blocking the installation.
+# Likewise bubblewrap: without it the only way left is to put Cheat Engine in
+# place yourself.
+optdepends=('steam: the games Anvil manages'
+            'xdg-utils: opening folders and Steam URLs'
+            'bubblewrap: get Cheat Engine from its vendor inside a sandbox')
+
+# .NET assemblies do not tolerate strip, and compressing the already packed
+# DLLs a second time gains nothing.
+options=('!strip')
+
+source=("$pkgname-$pkgver-linux-x64.tar.gz")
+sha256sums=('SKIP')   # the workflow fills in the real sum, see release.yml
+
+package() {
+    local quelle="$srcdir/$pkgname-$pkgver-linux-x64"
+
+    # The program lives under /usr/lib, not in /usr/bin: it is not a single
+    # file but an apphost with forty assemblies next to it.
+    install -dm755 "$pkgdir/usr/lib/$pkgname"
+    cp -a "$quelle/bin/." "$pkgdir/usr/lib/$pkgname/"
+    chmod 755 "$pkgdir/usr/lib/$pkgname/Anvil.App"
+
+    install -Dm755 "$quelle/$pkgname"          "$pkgdir/usr/bin/$pkgname"
+    install -Dm644 "$quelle/$pkgname.desktop"  "$pkgdir/usr/share/applications/$pkgname.desktop"
+
+    # Scalable, so into scalable/ and not into a size drawer.
+    install -Dm644 "$quelle/$pkgname.svg" \
+        "$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
+
+    install -Dm644 "$quelle/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    # The design package is not under MIT; its notice goes wherever LICENSE goes.
+    install -Dm644 "$quelle/THIRD-PARTY-NOTICES.md" \
+        "$pkgdir/usr/share/licenses/$pkgname/THIRD-PARTY-NOTICES.md"
+    # The licence texts of the bundled fonts (SIL OFL asks for them with every
+    # copy), next to LICENSE. The release workflow takes them from the package.
+    install -Dm644 -t "$pkgdir/usr/share/licenses/$pkgname/" "$quelle/licenses/"*
+}
